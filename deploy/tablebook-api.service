@@ -1,0 +1,14 @@
+[Unit]
+Description=TableBook API
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=tablebook
+WorkingDirectory=/opt/tablebook/apps/api
+EnvironmentFile=/opt/tablebook/apps/api/.env.production
+ExecStart=/usr/bin/node .next/standalone/apps/api/server.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

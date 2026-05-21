@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "TableBook",
+    "slug": "tablebook",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "tablebook",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0f172a",
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "name": "TableBook",
+      "shortName": "TableBook",
+      "themeColor": "#06b6d4",
+      "backgroundColor": "#0f172a",
+      "display": "standalone",
+      "startUrl": "/",
+      "description": "Restaurant table booking"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tablebook.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.tablebook.app"
+    },
+    "plugins": ["expo-router", "expo-secure-store"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

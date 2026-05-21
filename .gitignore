@@ -5,3 +5,6 @@ node_modules
 coverage
 dist
 *.log
+.expo
+apps/api/.next
+apps/mobile/dist

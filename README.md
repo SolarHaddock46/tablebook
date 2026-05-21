@@ -1,129 +1,71 @@
-# TableBook v1
+# TableBook v2
 
-TableBook v1 on Next.js (app router) + TypeScript + Tailwind + Supabase.
+Cross-platform restaurant booking: Expo (iOS/Android/Web PWA) + Next.js API + self-hosted Postgres.
 
 ## Stack
 
-- Next.js + React + TypeScript
-- TailwindCSS
-- Supabase (Postgres)
-- Vitest
-- GitHub Actions CI
-- Deploy targets: Vercel + Supabase
+- **apps/mobile** — Expo Router (React Native + Web/PWA)
+- **apps/api** — Next.js API-only (`/api/v1/*`)
+- **packages/shared** — types, i18n, business logic
+- **packages/db** — Drizzle ORM + migrations + seed
+- **packages/api-client** — typed HTTP client
 
-## Features
+## Prerequisites (macOS)
 
-- Pages: `Search`, `Results`, `Availability`, `NoAvailability`, `Confirmation`
-- RU/EN localization for UI and data fields
-- API:
-  - `GET /api/restaurants?cuisine=&district=&limit=&offset=`
-  - `GET /api/restaurants/:id`
-  - `POST /api/bookings`
-  - `POST /api/events`
-- Event logging in `events` for all booking and alternatives actions
-- Seed pipeline for 1000+ Moscow restaurants with bbox coordinates
-
-## Environment
-
-Copy `.env.example` to `.env.local` and fill:
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+```bash
+brew install node pnpm postgresql@16
+brew services start postgresql@16
+createuser tablebook -s || true
+createdb tablebook || true
+```
 
 ## Setup
 
 ```bash
+cp .env.example apps/api/.env.local
+cp .env.example apps/mobile/.env.local   # use EXPO_PUBLIC_API_URL line
 pnpm install
-pnpm dev
+pnpm db:migrate
+pnpm db:seed   # 10 fixed test restaurants (removes old generated data)
 ```
 
-## Database migration
-
-Apply SQL from:
-
-- `supabase/migrations/0001_init.sql`
-
-## Generate and seed mock data
+## Development (single MacBook)
 
 ```bash
-pnpm generate:restaurants --count=1000
-pnpm seed
+# Terminal 1
+pnpm dev                    # API → http://localhost:3000
+
+# Terminal 2
+pnpm mobile:dev             # Expo → i / w / a
 ```
 
-Files:
+- iOS Simulator: `localhost:3000`
+- Physical iPhone: set `EXPO_PUBLIC_API_URL=http://192.168.15.88:3000`
 
-- `fixtures/restaurants.json`
-- `fixtures/restaurants.json.gz`
+## API endpoints (v1)
 
-## Deploy
+- `POST /api/v1/auth/register`, `POST /api/v1/auth/login`
+- `GET/PATCH /api/v1/me`, `GET /api/v1/me/bookings`
+- `GET /api/v1/restaurants`, `GET /api/v1/restaurants/:id`
+- `GET /api/v1/restaurants/:id/availability`
+- `POST /api/v1/bookings` (auth required)
+- `GET/POST /api/v1/restaurants/:id/reviews`
+- B2B: `POST /api/v1/restaurants/onboard`, owner tables/bookings
 
-### Supabase
+## Optional Docker (Postgres only)
 
-1. Create project in Supabase
-2. Apply migration SQL
-3. Add env values to Vercel
-
-### Vercel
-
-1. Import repository
-2. Set env vars from `.env.example`
-3. Deploy
-
-## SQL queries for metrics
-
-### Alternative booking conversion
-
-```sql
-SELECT
-
-  CASE WHEN denominator.cnt = 0 THEN 0
-
-       ELSE (COALESCE(numerator.cnt,0)::numeric / denominator.cnt)
-
-  END AS alternative_booking_conversion
-
-FROM
-
-  (SELECT COUNT(*) AS cnt FROM events WHERE event_name='alternative_booking_success') numerator,
-
-  (SELECT COUNT(*) AS cnt FROM events WHERE event_name='alternatives_shown') denominator;
+```bash
+POSTGRES_PASSWORD=password docker compose up -d
 ```
 
-### Average revenue per booking and estimated alternative revenue
+## Production (VPS)
 
-```sql
-WITH subs AS (
+See [`deploy/nginx.conf`](deploy/nginx.conf) and [`deploy/tablebook-api.service`](deploy/tablebook-api.service).
 
-  SELECT COALESCE(SUM(total_revenue_cents),0) AS total_sub_cents
-
-  FROM subscriptions_revenue WHERE month = '2025-04'
-
-), bookings AS (
-
-  SELECT COUNT(*) AS total_bookings FROM bookings
-
-    WHERE date >= '2025-04-01' AND date < '2025-05-01'
-
-), alt_bookings AS (
-
-  SELECT COUNT(*) AS alt_count FROM bookings
-
-    WHERE source IN ('ai-alternative','quick-book') AND date >= '2025-04-01' AND date < '2025-05-01'
-
-)
-
-SELECT
-
-  subs.total_sub_cents,
-
-  bookings.total_bookings,
-
-  alt_bookings.alt_count,
-
-  CASE WHEN bookings.total_bookings = 0 THEN 0 ELSE (subs.total_sub_cents::numeric / bookings.total_bookings) END AS avg_revenue_per_booking_cents,
-
-  CASE WHEN bookings.total_bookings = 0 THEN 0 ELSE (subs.total_sub_cents::numeric / bookings.total_bookings) * alt_bookings.alt_count END AS estimated_revenue_from_alternative_bookings_cents
-
-FROM subs, bookings, alt_bookings;
-```
+1. Install Postgres 16 + Node 20 + pnpm
+2. Clone repo to `/opt/tablebook`, copy `.env.production` to `apps/api/`
+3. `pnpm install && pnpm db:migrate && pnpm db:seed && pnpm build`
+4. Enable systemd unit for API
+5. Build mobile web: `pnpm --filter @tablebook/mobile build`
+6. Point Nginx to API (:3000) and static files (`apps/mobile/dist`)
+7. Schedule `pg_dump tablebook` backups via cron
