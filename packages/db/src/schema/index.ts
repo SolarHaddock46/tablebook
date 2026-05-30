@@ -39,6 +39,9 @@ export const users = pgTable("users", {
   emailVerificationExpires: timestamp("email_verification_expires", { withTimezone: true }),
   passwordResetToken: text("password_reset_token"),
   passwordResetExpires: timestamp("password_reset_expires", { withTimezone: true }),
+  preferredCuisines: text("preferred_cuisines").array(),
+  preferredDistricts: text("preferred_districts").array(),
+  preferredPriceLevel: integer("preferred_price_level"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
 });
 

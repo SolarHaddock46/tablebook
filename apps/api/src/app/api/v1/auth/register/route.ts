@@ -27,7 +27,12 @@ export async function POST(request: Request) {
         email,
         passwordHash,
         role: parsed.data.role,
-        displayName: parsed.data.display_name ?? null,
+        displayName: parsed.data.display_name ?? parsed.data.full_name ?? null,
+        fullName: parsed.data.full_name ?? null,
+        phone: parsed.data.phone ?? null,
+        preferredCuisines: parsed.data.preferred_cuisines ?? null,
+        preferredDistricts: parsed.data.preferred_districts ?? null,
+        preferredPriceLevel: parsed.data.preferred_price_level ?? null,
         emailVerified: false
       })
       .returning();

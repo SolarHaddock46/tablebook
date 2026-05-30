@@ -22,6 +22,9 @@ export function mapUser(row: UserRow): User {
     phone: row.phone,
     email_verified: row.emailVerified,
     locale: row.locale as Locale,
+    preferred_cuisines: row.preferredCuisines ?? null,
+    preferred_districts: row.preferredDistricts ?? null,
+    preferred_price_level: row.preferredPriceLevel ?? null,
     created_at: row.createdAt.toISOString()
   };
 }
@@ -36,7 +39,10 @@ export function mapAuthUser(row: UserRow): AuthUser {
     full_name: user.full_name,
     phone: user.phone,
     email_verified: user.email_verified,
-    locale: user.locale
+    locale: user.locale,
+    preferred_cuisines: user.preferred_cuisines,
+    preferred_districts: user.preferred_districts,
+    preferred_price_level: user.preferred_price_level
   };
 }
 

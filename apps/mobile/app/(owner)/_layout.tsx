@@ -1,17 +1,19 @@
-import { Tabs } from "expo-router";
-import { useEffect, useState } from "react";
+import { Tabs, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import { TabBarIcon } from "@/components/TabBarIcon";
 import { api } from "@/lib/api";
 
 export default function OwnerLayout() {
   const [hasRestaurant, setHasRestaurant] = useState(false);
 
-  useEffect(() => {
+  const refreshRestaurantState = useCallback(() => {
     api
       .getMyRestaurant()
       .then(() => setHasRestaurant(true))
       .catch(() => setHasRestaurant(false));
   }, []);
+
+  useFocusEffect(refreshRestaurantState);
 
   return (
     <Tabs

@@ -4,7 +4,12 @@ export const RegisterSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   role: z.enum(["user", "restaurant_owner"]),
-  display_name: z.string().min(1).optional()
+  display_name: z.string().min(1).optional(),
+  full_name: z.string().min(1).optional(),
+  phone: z.string().min(5).optional(),
+  preferred_cuisines: z.array(z.string().min(1)).optional(),
+  preferred_districts: z.array(z.string().min(1)).optional(),
+  preferred_price_level: z.coerce.number().int().min(1).max(4).optional()
 });
 
 export const LoginSchema = z.object({
@@ -23,7 +28,12 @@ export const ResetPasswordSchema = z.object({
 
 export const UpdateMeSchema = z.object({
   display_name: z.string().min(1).optional(),
-  locale: z.enum(["ru", "en"]).optional()
+  full_name: z.string().min(1).optional().nullable(),
+  phone: z.string().min(5).optional().nullable(),
+  locale: z.enum(["ru", "en"]).optional(),
+  preferred_cuisines: z.array(z.string().min(1)).optional().nullable(),
+  preferred_districts: z.array(z.string().min(1)).optional().nullable(),
+  preferred_price_level: z.coerce.number().int().min(1).max(4).optional().nullable()
 });
 
 export const BookingSchema = z.object({

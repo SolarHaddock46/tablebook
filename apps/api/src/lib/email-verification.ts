@@ -40,13 +40,13 @@ export async function verifyEmailToken(token: string) {
     return null;
   }
 
+  if (row.emailVerified) {
+    return mapAuthUser(row);
+  }
+
   const [updated] = await db
     .update(users)
-    .set({
-      emailVerified: true,
-      emailVerificationToken: null,
-      emailVerificationExpires: null
-    })
+    .set({ emailVerified: true })
     .where(eq(users.id, row.id))
     .returning();
 

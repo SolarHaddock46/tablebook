@@ -17,7 +17,10 @@ export async function signAccessToken(user: AuthUser) {
     full_name: user.full_name,
     phone: user.phone,
     email_verified: user.email_verified,
-    locale: user.locale
+    locale: user.locale,
+    preferred_cuisines: user.preferred_cuisines,
+    preferred_districts: user.preferred_districts,
+    preferred_price_level: user.preferred_price_level
   })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(user.id)
@@ -40,7 +43,10 @@ export async function verifyAccessToken(token: string): Promise<AuthUser | null>
       full_name: (payload.full_name as string | null | undefined) ?? null,
       phone: (payload.phone as string | null | undefined) ?? null,
       email_verified: Boolean(payload.email_verified),
-      locale: (payload.locale as AuthUser["locale"] | undefined) ?? "ru"
+      locale: (payload.locale as AuthUser["locale"] | undefined) ?? "ru",
+      preferred_cuisines: (payload.preferred_cuisines as string[] | null | undefined) ?? null,
+      preferred_districts: (payload.preferred_districts as string[] | null | undefined) ?? null,
+      preferred_price_level: (payload.preferred_price_level as number | null | undefined) ?? null
     };
   } catch {
     return null;

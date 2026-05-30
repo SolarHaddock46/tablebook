@@ -78,6 +78,12 @@ export type Review = {
   author_name?: string | null;
 };
 
+export type UserPreferences = {
+  preferred_cuisines: string[] | null;
+  preferred_districts: string[] | null;
+  preferred_price_level: number | null;
+};
+
 export type User = {
   id: string;
   email: string;
@@ -87,6 +93,9 @@ export type User = {
   phone: string | null;
   email_verified: boolean;
   locale: Locale;
+  preferred_cuisines: string[] | null;
+  preferred_districts: string[] | null;
+  preferred_price_level: number | null;
   created_at: string;
 };
 
@@ -109,4 +118,7 @@ export type AuthUser = {
   phone: string | null;
   email_verified: boolean;
   locale: Locale;
+  preferred_cuisines: string[] | null;
+  preferred_districts: string[] | null;
+  preferred_price_level: number | null;
 };

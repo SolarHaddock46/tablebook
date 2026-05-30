@@ -26,12 +26,35 @@ export async function PATCH(request: Request) {
     }
 
     const db = getDb();
-    const updates: Partial<{ displayName: string; locale: string }> = {};
+    const updates: Partial<{
+      displayName: string | null;
+      fullName: string | null;
+      phone: string | null;
+      locale: string;
+      preferredCuisines: string[] | null;
+      preferredDistricts: string[] | null;
+      preferredPriceLevel: number | null;
+    }> = {};
     if (parsed.data.display_name !== undefined) {
       updates.displayName = parsed.data.display_name;
     }
+    if (parsed.data.full_name !== undefined) {
+      updates.fullName = parsed.data.full_name;
+    }
+    if (parsed.data.phone !== undefined) {
+      updates.phone = parsed.data.phone;
+    }
     if (parsed.data.locale !== undefined) {
       updates.locale = parsed.data.locale;
+    }
+    if (parsed.data.preferred_cuisines !== undefined) {
+      updates.preferredCuisines = parsed.data.preferred_cuisines;
+    }
+    if (parsed.data.preferred_districts !== undefined) {
+      updates.preferredDistricts = parsed.data.preferred_districts;
+    }
+    if (parsed.data.preferred_price_level !== undefined) {
+      updates.preferredPriceLevel = parsed.data.preferred_price_level;
     }
 
     const [row] = await db

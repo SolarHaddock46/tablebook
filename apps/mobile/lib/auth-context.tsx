@@ -30,17 +30,23 @@ async function storageDelete(key: string) {
   await SecureStore.deleteItemAsync(key);
 }
 
+type RegisterInput = {
+  email: string;
+  password: string;
+  role: "user" | "restaurant_owner";
+  full_name?: string;
+  phone?: string;
+  preferred_cuisines?: string[];
+  preferred_districts?: string[];
+  preferred_price_level?: number;
+};
+
 type AuthContextValue = {
   user: AuthUser | null;
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<{ email_verified: boolean }>;
-  register: (
-    email: string,
-    password: string,
-    role: "user" | "restaurant_owner",
-    displayName?: string
-  ) => Promise<void>;
+  register: (input: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
   refreshMe: () => Promise<void>;
 };
@@ -99,13 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await persistSession(result.accessToken, result.user);
         return { email_verified: result.user.email_verified };
       },
-      async register(email, password, role, displayName) {
-        const result = await api.register({
-          email,
-          password,
-          role,
-          display_name: displayName
-        });
+      async register(input) {
+        const result = await api.register(input);
         await persistSession(result.accessToken, result.user);
       },
       async logout() {

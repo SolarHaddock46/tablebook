@@ -57,6 +57,11 @@ export class TableBookClient {
     password: string;
     role: UserRole;
     display_name?: string;
+    full_name?: string;
+    phone?: string;
+    preferred_cuisines?: string[];
+    preferred_districts?: string[];
+    preferred_price_level?: number;
   }) {
     return this.request<{ user: AuthUser; accessToken: string }>("/api/v1/auth/register", {
       method: "POST",
@@ -106,8 +111,31 @@ export class TableBookClient {
     return this.request<Restaurant>("/api/v1/me/restaurant");
   }
 
-  updateMe(input: { display_name?: string; locale?: Locale }) {
+  updateMe(input: {
+    display_name?: string;
+    full_name?: string | null;
+    phone?: string | null;
+    locale?: Locale;
+    preferred_cuisines?: string[] | null;
+    preferred_districts?: string[] | null;
+    preferred_price_level?: number | null;
+  }) {
     return this.request<AuthUser>("/api/v1/me", {
+      method: "PATCH",
+      body: JSON.stringify(input)
+    });
+  }
+
+  updateProfile(input: {
+    display_name?: string;
+    full_name?: string | null;
+    phone?: string | null;
+    locale?: Locale;
+    preferred_cuisines?: string[] | null;
+    preferred_districts?: string[] | null;
+    preferred_price_level?: number | null;
+  }) {
+    return this.request<AuthUser>("/api/v1/users/profile", {
       method: "PATCH",
       body: JSON.stringify(input)
     });

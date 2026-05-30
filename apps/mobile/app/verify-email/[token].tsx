@@ -1,9 +1,11 @@
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, Text } from "react-native";
 import { Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+
+const confirmedTokens = new Set<string>();
 
 export default function VerifyEmailTokenScreen() {
   const router = useRouter();
@@ -11,6 +13,7 @@ export default function VerifyEmailTokenScreen() {
   const { refreshMe, user } = useAuth();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [error, setError] = useState<string | null>(null);
+  const startedRef = useRef(false);
 
   useEffect(() => {
     async function confirm() {
@@ -19,11 +22,21 @@ export default function VerifyEmailTokenScreen() {
         setError("Ссылка недействительна");
         return;
       }
+
+      if (confirmedTokens.has(token)) {
+        setStatus("success");
+        return;
+      }
+
+      if (startedRef.current) {
+        return;
+      }
+      startedRef.current = true;
+
       try {
         await api.confirmEmail(token);
-        if (user) {
-          await refreshMe();
-        }
+        confirmedTokens.add(token);
+        await refreshMe();
         setStatus("success");
       } catch (err) {
         setStatus("error");
@@ -31,7 +44,7 @@ export default function VerifyEmailTokenScreen() {
       }
     }
     confirm();
-  }, [refreshMe, token, user]);
+  }, [refreshMe, token]);
 
   function navigateNext() {
     if (user) {

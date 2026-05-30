@@ -1,32 +1,30 @@
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text } from "react-native";
+import {
+  CUISINE_FILTER_OPTIONS,
+  DISTRICT_FILTER_OPTIONS,
+  PRICE_LEVEL_FILTER_OPTIONS,
+  t,
+  type Locale
+} from "@tablebook/shared";
 import { DateField, TimeField } from "@/components/DateTimeField";
+import { OptionRow } from "@/components/OptionRow";
 import { Screen, ui } from "@/components/ui";
-import { t, type Locale } from "@tablebook/shared";
 
 const cuisines = [
   { id: "", title: "Любая кухня" },
-  { id: "European", title: "Европейская" },
-  { id: "Italian", title: "Итальянская" },
-  { id: "Georgian", title: "Грузинская" },
-  { id: "Japanese", title: "Японская" }
+  ...CUISINE_FILTER_OPTIONS.map((item) => ({ id: item.id, title: item.titleRu }))
 ];
 
 const districts = [
   { id: "", title: "Любой район" },
-  { id: "Center", title: "Центр" },
-  { id: "Arbat", title: "Арбат" },
-  { id: "Taganka", title: "Таганка" },
-  { id: "Tverskaya", title: "Тверская" }
+  ...DISTRICT_FILTER_OPTIONS.map((item) => ({ id: item.id, title: item.titleRu }))
 ];
 
 const priceLevels = [
   { id: "", title: "Любой чек" },
-  { id: "1", title: "$" },
-  { id: "2", title: "$$" },
-  { id: "3", title: "$$$" },
-  { id: "4", title: "$$$$" }
+  ...PRICE_LEVEL_FILTER_OPTIONS.map((item) => ({ id: String(item.id), title: item.titleRu }))
 ];
 
 const guestOptions = ["1", "2", "3", "4", "5", "6"];
@@ -114,39 +112,5 @@ export default function SearchScreen() {
         <Text style={ui.buttonText}>Найти</Text>
       </Pressable>
     </Screen>
-  );
-}
-
-function OptionRow({
-  options,
-  value,
-  onChange
-}: {
-  options: Array<{ id: string; title: string }>;
-  value: string;
-  onChange: (next: string) => void;
-}) {
-  return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-      {options.map((option) => {
-        const selected = value === option.id;
-        return (
-          <Pressable
-            key={option.id || "all"}
-            style={[
-              ui.card,
-              {
-                paddingVertical: 8,
-                paddingHorizontal: 10,
-                borderColor: selected ? "#06b6d4" : "#334155"
-              }
-            ]}
-            onPress={() => onChange(option.id)}
-          >
-            <Text style={selected ? ui.link : ui.muted}>{option.title}</Text>
-          </Pressable>
-        );
-      })}
-    </View>
   );
 }
