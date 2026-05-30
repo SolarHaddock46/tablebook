@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import type { Locale } from "@tablebook/shared";
+import { getReviewReminderOpenUrl } from "@/lib/review-reminder-links";
 
 type SendEmailInput = {
   to: string;
@@ -146,6 +147,43 @@ export async function sendPasswordResetEmail(input: {
 }) {
   const resetUrl = `${getAppUrl()}/reset-password?token=${input.token}`;
   const copy = passwordResetCopy(input.locale, resetUrl);
+  await sendEmail({
+    to: input.email,
+    subject: copy.subject,
+    text: copy.text,
+    html: copy.html
+  });
+}
+
+function reviewReminderCopy(
+  locale: Locale,
+  input: { reviewUrl: string; restaurantName: string }
+) {
+  if (locale === "en") {
+    return {
+      subject: `How was your visit to ${input.restaurantName}?`,
+      text: `Thanks for visiting ${input.restaurantName}!\n\nLeave a review:\n${input.reviewUrl}\n\nThe link is valid for 14 days.`,
+      html: `<p>Thanks for visiting <strong>${input.restaurantName}</strong>!</p><p><a href="${input.reviewUrl}">Leave a review</a></p><p>The link is valid for 14 days.</p>`
+    };
+  }
+  return {
+    subject: `Как вам понравился визит в ${input.restaurantName}?`,
+    text: `Спасибо за визит в ${input.restaurantName}!\n\nОставьте отзыв:\n${input.reviewUrl}\n\nСсылка действует 14 дней.`,
+    html: `<p>Спасибо за визит в <strong>${input.restaurantName}</strong>!</p><p><a href="${input.reviewUrl}">Оставить отзыв</a></p><p>Ссылка действует 14 дней.</p>`
+  };
+}
+
+export async function sendReviewReminderEmail(input: {
+  email: string;
+  token: string;
+  locale: Locale;
+  restaurantName: string;
+}) {
+  const reviewUrl = getReviewReminderOpenUrl(input.token);
+  const copy = reviewReminderCopy(input.locale, {
+    reviewUrl,
+    restaurantName: input.restaurantName
+  });
   await sendEmail({
     to: input.email,
     subject: copy.subject,

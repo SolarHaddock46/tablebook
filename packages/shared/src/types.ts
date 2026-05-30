@@ -80,6 +80,7 @@ export type Booking = {
   rejection_reason: string | null;
   revenue_cents: number;
   cancelled_at: string | null;
+  review_reminder_sent: boolean;
   created_at: string;
   updated_at: string;
 };

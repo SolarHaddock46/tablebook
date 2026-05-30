@@ -230,6 +230,19 @@ export class TableBookClient {
     });
   }
 
+  requestReviewReminder(bookingId: string) {
+    return this.request<{ ok: true; booking_id: string }>(
+      `/api/v1/bookings/${bookingId}/request-review`,
+      { method: "POST" }
+    );
+  }
+
+  redeemReviewReminderToken(token: string) {
+    return this.request<{ ok: true; booking_id: string; restaurant_id: string }>(
+      `/api/v1/reviews/reminder/${encodeURIComponent(token)}`
+    );
+  }
+
   getReviews(restaurantId: string, params?: { limit?: number; offset?: number }) {
     const query = new URLSearchParams();
     if (params?.limit) query.set("limit", String(params.limit));

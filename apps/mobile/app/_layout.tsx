@@ -18,6 +18,8 @@ function RootNavigator() {
     const authSegment = segments[1] as string | undefined;
     const inPublicAuthFlow =
       rootSegment === "verify-email" ||
+      rootSegment === "review" ||
+      rootSegment === "restaurant" ||
       rootSegment === "reset-password" ||
       (inAuth && authSegment === "reset-password");
 

@@ -94,6 +94,7 @@ export const bookings = pgTable(
     rejectionReason: text("rejection_reason"),
     revenueCents: integer("revenue_cents").notNull().default(0),
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    reviewReminderSent: boolean("review_reminder_sent").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow()
   },

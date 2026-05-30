@@ -5,6 +5,9 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "tablebook",
+    "linking": {
+      "prefixes": ["tablebook://"]
+    },
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0f172a",
     "web": {

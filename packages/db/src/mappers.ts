@@ -101,6 +101,7 @@ export function mapBooking(row: BookingRow): Booking {
     rejection_reason: row.rejectionReason,
     revenue_cents: row.revenueCents,
     cancelled_at: row.cancelledAt?.toISOString() ?? null,
+    review_reminder_sent: row.reviewReminderSent,
     created_at: row.createdAt.toISOString(),
     updated_at: row.updatedAt.toISOString()
   };

@@ -19,6 +19,7 @@ const baseBooking: Booking = {
   rejection_reason: null,
   revenue_cents: 1000,
   cancelled_at: null,
+  review_reminder_sent: false,
   created_at: "",
   updated_at: ""
 };

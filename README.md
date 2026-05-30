@@ -51,6 +51,15 @@ pnpm mobile:dev             # Expo → i / w / a
 - `POST /api/v1/bookings` (auth required)
 - `GET/POST /api/v1/restaurants/:id/reviews`
 - B2B: `POST /api/v1/restaurants/onboard`, owner tables/bookings
+- `POST /api/v1/bookings/:id/request-review` — owner sends review reminder email
+- `POST /api/v1/cron/review-reminders` — batch send reminders (header `Authorization: Bearer $CRON_SECRET`)
+
+Schedule review reminders (e.g. hourly):
+
+```bash
+curl -X POST http://localhost:3000/api/v1/cron/review-reminders \
+  -H "Authorization: Bearer $CRON_SECRET"
+```
 
 ## Optional Docker (Postgres only)
 

@@ -1,11 +1,14 @@
-import { Link, useRouter, type Href } from "expo-router";
+import { Link, useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { Screen, ui } from "@/components/ui";
 import { useAuth } from "@/lib/auth-context";
+import { isSafeInAppRedirect } from "@/lib/review-reminder-flow";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { redirect } = useLocalSearchParams<{ redirect?: string | string[] }>();
+  const redirectPath = Array.isArray(redirect) ? redirect[0] : redirect;
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,6 +25,10 @@ export default function LoginScreen() {
       if (!result.email_verified) {
         setWarning("Email не подтверждён. Проверьте почту или отправьте письмо снова.");
         router.replace("/(auth)/verify-email" as Href);
+        return;
+      }
+      if (isSafeInAppRedirect(redirectPath)) {
+        router.replace(redirectPath as Href);
         return;
       }
       router.replace("/(tabs)/search");

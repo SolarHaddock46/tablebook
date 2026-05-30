@@ -4,4 +4,5 @@ export * from "./i18n";
 export * from "./restaurant-view";
 export * from "./schemas";
 export * from "./review-eligibility";
+export * from "./review-reminder";
 export * from "./booking-policy";
