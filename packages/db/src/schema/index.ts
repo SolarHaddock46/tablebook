@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   date,
+  index,
   integer,
   jsonb,
   numeric,
@@ -16,7 +17,13 @@ import {
 
 export const userRoleEnum = pgEnum("user_role", ["user", "restaurant_owner", "admin"]);
 
-export const bookingStatusEnum = pgEnum("booking_status", ["confirmed", "cancelled", "completed"]);
+export const bookingStatusEnum = pgEnum("booking_status", [
+  "pending",
+  "confirmed",
+  "rejected",
+  "cancelled",
+  "completed"
+]);
 
 export const restaurantStatusEnum = pgEnum("restaurant_status", [
   "draft",
@@ -73,15 +80,18 @@ export const bookings = pgTable(
     restaurantId: uuid("restaurant_id")
       .notNull()
       .references(() => restaurants.id, { onDelete: "cascade" }),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id),
+    userId: uuid("user_id").references(() => users.id),
     tableId: text("table_id").notNull(),
     date: date("date").notNull(),
     time: time("time").notNull(),
     guests: integer("guests").notNull(),
     source: text("source").notNull(),
-    status: bookingStatusEnum("status").notNull().default("confirmed"),
+    status: bookingStatusEnum("status").notNull().default("pending"),
+    guestName: text("guest_name"),
+    guestPhone: text("guest_phone"),
+    isManual: boolean("is_manual").notNull().default(false),
+    manualNote: text("manual_note"),
+    rejectionReason: text("rejection_reason"),
     revenueCents: integer("revenue_cents").notNull().default(0),
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -90,7 +100,8 @@ export const bookings = pgTable(
   (table) => [
     uniqueIndex("idx_bookings_slot")
       .on(table.restaurantId, table.tableId, table.date, table.time)
-      .where(sql`${table.status} = 'confirmed'`)
+      .where(sql`${table.status} = 'confirmed'`),
+    index("idx_bookings_restaurant_status").on(table.restaurantId, table.status)
   ]
 );
 

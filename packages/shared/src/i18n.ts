@@ -1,4 +1,4 @@
-import { type Locale } from "./types";
+import { type Locale, type BookingStatus } from "./types";
 
 const dictionary = {
   ru: {
@@ -71,6 +71,24 @@ const dictionary = {
     cancelUntil: "Можно отменить до {deadline}",
     cancelWindowExpired: "Отмена недоступна: до начала брони осталось менее 4 часов",
     bookingCancelled: "Бронь отменена",
+    bookingStatusPending: "Ожидает подтверждения",
+    bookingStatusConfirmed: "Подтверждено",
+    bookingStatusRejected: "Отклонено",
+    bookingStatusCancelled: "Отменено",
+    bookingStatusCompleted: "Завершено",
+    pendingConfirmationTitle: "Заявка отправлена",
+    pendingConfirmationHint: "Ресторан подтвердит бронь в ближайшее время",
+    ownerBookingsPending: "Ожидают",
+    ownerBookingsConfirmed: "Подтверждённые",
+    ownerBookingsAll: "Все",
+    ownerConfirmBooking: "Подтвердить",
+    ownerRejectBooking: "Отклонить",
+    ownerManualBooking: "Добавить вручную",
+    ownerManualBookingTitle: "Ручная бронь",
+    ownerRejectionReason: "Причина отклонения",
+    ownerRejectionReasonHint: "Необязательно",
+    ownerManualNoteHint: "Заметка (необязательно)",
+    ownerPendingBadge: "{count} новых",
     registerAsGuest: "Гость",
     registerAsOwner: "Ресторан",
     ownerDashboard: "Кабинет ресторана",
@@ -182,6 +200,24 @@ const dictionary = {
     cancelUntil: "You can cancel until {deadline}",
     cancelWindowExpired: "Cancellation unavailable: less than 4 hours until your booking",
     bookingCancelled: "Booking cancelled",
+    bookingStatusPending: "Awaiting confirmation",
+    bookingStatusConfirmed: "Confirmed",
+    bookingStatusRejected: "Rejected",
+    bookingStatusCancelled: "Cancelled",
+    bookingStatusCompleted: "Completed",
+    pendingConfirmationTitle: "Request sent",
+    pendingConfirmationHint: "The restaurant will confirm your booking soon",
+    ownerBookingsPending: "Pending",
+    ownerBookingsConfirmed: "Confirmed",
+    ownerBookingsAll: "All",
+    ownerConfirmBooking: "Confirm",
+    ownerRejectBooking: "Reject",
+    ownerManualBooking: "Add manually",
+    ownerManualBookingTitle: "Manual booking",
+    ownerRejectionReason: "Rejection reason",
+    ownerRejectionReasonHint: "Optional",
+    ownerManualNoteHint: "Note (optional)",
+    ownerPendingBadge: "{count} new",
     registerAsGuest: "Guest",
     registerAsOwner: "Restaurant",
     ownerDashboard: "Restaurant dashboard",
@@ -227,6 +263,22 @@ const dictionary = {
 
 export function t(locale: Locale) {
   return dictionary[locale];
+}
+
+export function getBookingStatusLabel(status: BookingStatus, locale: Locale): string {
+  const dict = t(locale);
+  switch (status) {
+    case "pending":
+      return dict.bookingStatusPending;
+    case "confirmed":
+      return dict.bookingStatusConfirmed;
+    case "rejected":
+      return dict.bookingStatusRejected;
+    case "cancelled":
+      return dict.bookingStatusCancelled;
+    case "completed":
+      return dict.bookingStatusCompleted;
+  }
 }
 
 export type Dictionary = ReturnType<typeof t>;

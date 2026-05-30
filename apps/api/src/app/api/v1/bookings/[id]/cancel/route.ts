@@ -18,7 +18,7 @@ export async function PATCH(request: Request, { params }: Props) {
     if (!row) {
       return Response.json({ error: "Not found" }, { status: 404 });
     }
-    if (row.userId !== authUser.id) {
+    if (row.userId && row.userId !== authUser.id) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
     const booking = mapBooking(row);

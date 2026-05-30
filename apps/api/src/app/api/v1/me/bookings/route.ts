@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, lt } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lt } from "drizzle-orm";
 import { bookings, getDb, mapBooking } from "@tablebook/db";
 import { jsonError, requireAuth } from "@/lib/auth-helpers";
 
@@ -13,11 +13,11 @@ export async function GET(request: Request) {
     const db = getDb();
     const filters = [eq(bookings.userId, authUser.id)];
     if (status) {
-      filters.push(eq(bookings.status, status as "confirmed" | "cancelled" | "completed"));
+      filters.push(eq(bookings.status, status as "pending" | "confirmed" | "rejected" | "cancelled" | "completed"));
     }
     if (upcoming === "true") {
       filters.push(gte(bookings.date, today));
-      filters.push(eq(bookings.status, "confirmed"));
+      filters.push(inArray(bookings.status, ["pending", "confirmed"]));
     }
     if (upcoming === "false") {
       filters.push(lt(bookings.date, today));

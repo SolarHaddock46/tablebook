@@ -52,6 +52,21 @@ export const BookingSchema = z.object({
   revenue_cents: z.coerce.number().int().min(0).default(3500)
 });
 
+export const ManualBookingSchema = z.object({
+  restaurant_id: z.string().uuid(),
+  table_id: z.string().min(1),
+  date: z.string().min(8),
+  time: z.string().min(4),
+  guests: z.coerce.number().int().min(1).max(20),
+  guest_name: z.string().min(1),
+  guest_phone: z.string().min(5),
+  manual_note: z.string().max(500).optional()
+});
+
+export const RejectBookingSchema = z.object({
+  reason: z.string().max(500).optional()
+});
+
 export const ReviewSchema = z.object({
   rating: z.coerce.number().int().min(1).max(5),
   body: z.string().max(2000).optional()

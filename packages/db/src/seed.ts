@@ -298,7 +298,7 @@ async function run() {
       lat: item.lat,
       lng: item.lng,
       ownerId: item.isOwnerDemo ? ownerRow.id : null,
-      status: "active"
+      status: "active" as const
     }))
   );
 
@@ -333,8 +333,10 @@ async function run() {
       if (!table) continue;
 
       const date = randomDateWithinDays(-7, 14);
-      let status: "confirmed" | "cancelled" | "completed" =
-        date < todayIso ? "completed" : pickRandom(["confirmed", "cancelled"]) ?? "confirmed";
+      let status: "pending" | "confirmed" | "cancelled" | "completed" =
+        date < todayIso
+          ? "completed"
+          : pickRandom(["pending", "confirmed", "cancelled"]) ?? "pending";
       const bookingTime = pickRandom([...BookingTimeOptions]) ?? "19:00";
       const slotKey = `${restaurant.id}:${table.id}:${date}:${bookingTime}`;
       if (status === "confirmed" && usedConfirmedSlots.has(slotKey)) {

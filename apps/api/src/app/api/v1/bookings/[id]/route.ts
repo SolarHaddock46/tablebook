@@ -17,7 +17,7 @@ export async function GET(request: Request, { params }: Props) {
       return Response.json({ error: "Not found" }, { status: 404 });
     }
 
-    if (row.userId !== authUser.id) {
+    if (row.userId && row.userId !== authUser.id) {
       const [restaurant] = await db
         .select({ ownerId: restaurants.ownerId })
         .from(restaurants)

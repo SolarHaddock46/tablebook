@@ -267,6 +267,35 @@ export class TableBookClient {
     );
   }
 
+  confirmOwnerBooking(id: string) {
+    return this.request<{ booking: Booking }>(`/api/v1/owner/bookings/${id}/confirm`, {
+      method: "POST"
+    });
+  }
+
+  rejectOwnerBooking(id: string, input?: { reason?: string }) {
+    return this.request<{ booking: Booking }>(`/api/v1/owner/bookings/${id}/reject`, {
+      method: "POST",
+      body: JSON.stringify(input ?? {})
+    });
+  }
+
+  createManualBooking(input: {
+    restaurant_id: string;
+    table_id: string;
+    date: string;
+    time: string;
+    guests: number;
+    guest_name: string;
+    guest_phone: string;
+    manual_note?: string;
+  }) {
+    return this.request<{ booking: Booking }>("/api/v1/owner/bookings/manual", {
+      method: "POST",
+      body: JSON.stringify(input)
+    });
+  }
+
   logEvent(event_name: string, payload: Record<string, unknown>) {
     return this.request<{ ok: true }>("/api/v1/events", {
       method: "POST",

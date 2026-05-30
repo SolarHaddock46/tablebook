@@ -4,7 +4,7 @@ export type CancelBookingEligibility =
   | { allowed: true; deadline: Date }
   | {
       allowed: false;
-      reason: "not_confirmed" | "past" | "window_expired";
+      reason: "not_cancellable" | "past" | "window_expired";
       deadline: Date;
     };
 
@@ -20,14 +20,18 @@ export function getCancellationDeadline(booking: Booking): Date {
 
 export function canCancelBooking(booking: Booking, now = new Date()): CancelBookingEligibility {
   const deadline = getCancellationDeadline(booking);
+  const start = getBookingStartDate(booking);
 
-  if (booking.status !== "confirmed") {
-    return { allowed: false, reason: "not_confirmed", deadline };
+  if (booking.status !== "confirmed" && booking.status !== "pending") {
+    return { allowed: false, reason: "not_cancellable", deadline };
   }
 
-  const start = getBookingStartDate(booking);
   if (now >= start) {
     return { allowed: false, reason: "past", deadline };
+  }
+
+  if (booking.status === "pending") {
+    return { allowed: true, deadline };
   }
 
   if (now >= deadline) {

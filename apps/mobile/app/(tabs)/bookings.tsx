@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { ListSeparator, Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
-import { isPastVisitBooking, t, type Booking, type Locale } from "@tablebook/shared";
+import { getBookingStatusLabel, isPastVisitBooking, t, type Booking, type Locale } from "@tablebook/shared";
 
 export default function BookingsScreen() {
   const router = useRouter();
@@ -49,6 +49,7 @@ export default function BookingsScreen() {
         renderItem={({ item }) => (
           <BookingCard
             booking={item}
+            locale={locale}
             showReviewAction={scope === "past" && isPastVisitBooking(item)}
             onOpenBooking={() => router.push(`/booking/${item.id}`)}
             onLeaveReview={() =>
@@ -67,17 +68,20 @@ export default function BookingsScreen() {
 
 function BookingCard({
   booking,
+  locale,
   showReviewAction,
   onOpenBooking,
   onLeaveReview,
   reviewLabel
 }: {
   booking: Booking;
+  locale: Locale;
   showReviewAction: boolean;
   onOpenBooking: () => void;
   onLeaveReview: () => void;
   reviewLabel: string;
 }) {
+  const statusLabel = getBookingStatusLabel(booking.status, locale);
   return (
     <View style={ui.card}>
       <Pressable onPress={onOpenBooking}>
@@ -85,7 +89,7 @@ function BookingCard({
           {booking.date} · {booking.time}
         </Text>
         <Text style={ui.muted}>
-          {booking.guests} гостей · {booking.status}
+          {booking.guests} гостей · {statusLabel}
         </Text>
       </Pressable>
       {showReviewAction ? (

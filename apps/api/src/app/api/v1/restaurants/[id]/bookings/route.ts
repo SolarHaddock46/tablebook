@@ -23,10 +23,13 @@ export async function GET(request: Request, { params }: Props) {
       .orderBy(desc(bookings.date), desc(bookings.time));
 
     return Response.json(
-      rows.map((row) => ({
-        ...mapBooking(row.booking),
-        guest_name: row.guestName
-      }))
+      rows.map((row) => {
+        const booking = mapBooking(row.booking);
+        return {
+          ...booking,
+          guest_name: booking.guest_name ?? row.guestName ?? null
+        };
+      })
     );
   } catch (error) {
     return jsonError(error);

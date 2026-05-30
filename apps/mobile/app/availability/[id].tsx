@@ -79,7 +79,8 @@ export default function AvailabilityScreen() {
           restaurant_id: result.restaurant.id,
           date,
           time,
-          guests: String(guests)
+          guests: String(guests),
+          status: result.booking.status
         }
       });
     } catch (err) {

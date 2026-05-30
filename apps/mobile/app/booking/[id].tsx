@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { ApiError } from "@tablebook/api-client";
 import {
   canCancelBooking,
+  getBookingStatusLabel,
   getRestaurantName,
   isPastVisitBooking,
   t,
@@ -84,7 +85,13 @@ export default function BookingDetailScreen() {
       <Text style={ui.muted}>
         {booking.date} · {booking.time}
       </Text>
-      <Text style={ui.muted}>Статус: {booking.status}</Text>
+      <Text style={ui.muted}>Статус: {getBookingStatusLabel(booking.status, locale)}</Text>
+      {booking.status === "rejected" && booking.rejection_reason ? (
+        <Text style={ui.muted}>{booking.rejection_reason}</Text>
+      ) : null}
+      {booking.status === "pending" ? (
+        <Text style={ui.muted}>{dict.pendingConfirmationHint}</Text>
+      ) : null}
       {renderCancellationHint(cancellation, dict, locale)}
       {message ? <Text style={ui.link}>{message}</Text> : null}
       {error ? <Text style={[ui.muted, { color: "#f87171" }]}>{error}</Text> : null}
@@ -118,7 +125,7 @@ function renderCancellationHint(
     );
   }
 
-  if (cancellation.reason === "not_confirmed") {
+  if (cancellation.reason === "not_cancellable") {
     return null;
   }
 
@@ -135,7 +142,10 @@ function renderCancelButton(
   dict: ReturnType<typeof t>,
   onCancel: () => void
 ) {
-  if (booking.status !== "confirmed" || isPastVisitBooking(booking)) {
+  if (booking.status !== "confirmed" && booking.status !== "pending") {
+    return null;
+  }
+  if (isPastVisitBooking(booking)) {
     return null;
   }
 

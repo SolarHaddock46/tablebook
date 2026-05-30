@@ -1,24 +1,18 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { bookings, getDb, mapBooking, mapRestaurant, restaurants } from "@tablebook/db";
-import { BookingSchema } from "@tablebook/shared";
-import { jsonError, requireAuth } from "@/lib/auth-helpers";
+import { ManualBookingSchema } from "@tablebook/shared";
+import { jsonError, requireOwner } from "@/lib/auth-helpers";
 import { logEvent } from "@/lib/events";
 import { getAvailabilityForRestaurant } from "@/lib/restaurants-service";
 
 export async function POST(request: Request) {
   try {
-    const authUser = await requireAuth(request);
-    if (authUser.role !== "user") {
-      return Response.json(
-        { error: "Restaurant owners cannot create bookings from owner account" },
-        { status: 403 }
-      );
-    }
-    const parsed = BookingSchema.safeParse(await request.json());
+    const parsed = ManualBookingSchema.safeParse(await request.json());
     if (!parsed.success) {
       return Response.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
+    const authUser = await requireOwner(request, parsed.data.restaurant_id);
     const db = getDb();
     const [restaurantRow] = await db
       .select()
@@ -47,38 +41,31 @@ export async function POST(request: Request) {
         .insert(bookings)
         .values({
           restaurantId: parsed.data.restaurant_id,
-          userId: authUser.id,
+          userId: null,
           tableId: parsed.data.table_id,
           date: parsed.data.date,
           time: parsed.data.time,
           guests: parsed.data.guests,
-          source: parsed.data.source,
-          revenueCents: parsed.data.revenue_cents,
-          status: "pending"
+          source: "direct",
+          status: "confirmed",
+          guestName: parsed.data.guest_name,
+          guestPhone: parsed.data.guest_phone,
+          isManual: true,
+          manualNote: parsed.data.manual_note ?? null,
+          revenueCents: 0
         })
         .returning();
 
       await logEvent(
-        "booking_created",
+        "manual_booking_created",
         {
           booking_id: bookingRow.id,
-          restaurant_id: bookingRow.restaurantId,
-          source: bookingRow.source
+          restaurant_id: bookingRow.restaurantId
         },
         authUser.id
       );
 
-      if (bookingRow.source === "ai-alternative") {
-        await logEvent("alternative_booking_success", { booking_id: bookingRow.id }, authUser.id);
-      }
-
-      return Response.json(
-        {
-          booking: mapBooking(bookingRow),
-          restaurant
-        },
-        { status: 201 }
-      );
+      return Response.json({ booking: mapBooking(bookingRow) }, { status: 201 });
     } catch (error) {
       if (error instanceof Error && error.message.includes("idx_bookings_slot")) {
         return Response.json({ error: "Slot unavailable" }, { status: 409 });

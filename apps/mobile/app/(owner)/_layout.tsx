@@ -5,15 +5,27 @@ import { api } from "@/lib/api";
 
 export default function OwnerLayout() {
   const [hasRestaurant, setHasRestaurant] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
 
   const refreshRestaurantState = useCallback(() => {
     api
       .getMyRestaurant()
-      .then(() => setHasRestaurant(true))
-      .catch(() => setHasRestaurant(false));
+      .then((restaurant) => {
+        setHasRestaurant(true);
+        return api.getOwnerBookings(restaurant.id);
+      })
+      .then((bookings) => {
+        setPendingCount(bookings.filter((item) => item.status === "pending").length);
+      })
+      .catch(() => {
+        setHasRestaurant(false);
+        setPendingCount(0);
+      });
   }, []);
 
   useFocusEffect(refreshRestaurantState);
+
+  const bookingsTitle = pendingCount > 0 ? `Брони (${pendingCount})` : "Брони";
 
   return (
     <Tabs
@@ -57,7 +69,7 @@ export default function OwnerLayout() {
       <Tabs.Screen
         name="bookings"
         options={{
-          title: "Брони",
+          title: bookingsTitle,
           href: hasRestaurant ? undefined : null,
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon activeName="calendar" inactiveName="calendar-outline" color={color} focused={focused} />

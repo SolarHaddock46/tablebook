@@ -4,7 +4,7 @@ export type UserRole = "user" | "restaurant_owner" | "admin";
 
 export type RestaurantStatus = "draft" | "pending" | "active" | "suspended";
 
-export type BookingStatus = "confirmed" | "cancelled" | "completed";
+export type BookingStatus = "pending" | "confirmed" | "rejected" | "cancelled" | "completed";
 
 export type RestaurantTable = {
   id: string;
@@ -55,13 +55,18 @@ export type BookingSource = "direct" | "ai-alternative" | "quick-book";
 export type Booking = {
   id: string;
   restaurant_id: string;
-  user_id: string;
+  user_id: string | null;
   table_id: string;
   date: string;
   time: string;
   guests: number;
   source: BookingSource;
   status: BookingStatus;
+  guest_name: string | null;
+  guest_phone: string | null;
+  is_manual: boolean;
+  manual_note: string | null;
+  rejection_reason: string | null;
   revenue_cents: number;
   cancelled_at: string | null;
   created_at: string;
