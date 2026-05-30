@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { FlatList, Pressable, Text } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
+import { RestaurantAvatar } from "@/components/restaurant-avatar";
 import { ListSeparator, MatchReasons, Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
 import {
@@ -120,11 +121,16 @@ export default function ResultsScreen() {
               })
             }
           >
-            <Text style={ui.value}>{getRestaurantName(item, locale)}</Text>
-            <Text style={ui.muted}>
-              {getRestaurantDistrict(item, locale)} · ★ {item.rating} ({item.review_count}) ·{" "}
-              {getPriceLabel(item.price_level)} · {item.has_availability ? dict.available : dict.unavailable}
-            </Text>
+            <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+              <RestaurantAvatar url={item.avatar_url} />
+              <View style={{ flex: 1, gap: 4 }}>
+                <Text style={ui.value}>{getRestaurantName(item, locale)}</Text>
+                <Text style={ui.muted}>
+                  {getRestaurantDistrict(item, locale)} · ★ {item.rating} ({item.review_count}) ·{" "}
+                  {getPriceLabel(item.price_level)} · {item.has_availability ? dict.available : dict.unavailable}
+                </Text>
+              </View>
+            </View>
             {isFallback && !fromRecommendations && item.matchReasons && item.matchReasons.length > 0 ? (
               <MatchReasons reasons={item.matchReasons} />
             ) : null}

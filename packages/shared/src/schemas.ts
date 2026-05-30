@@ -104,3 +104,18 @@ export const UpdateTablesSchema = z.object({
     })
   )
 });
+
+export const PresignPhotoSchema = z.object({
+  content_type: z.string().min(1).default("image/jpeg"),
+  file_name: z.string().min(1).optional()
+});
+
+export const RegisterPhotoSchema = z.object({
+  url: z.string().url(),
+  storage_key: z.string().min(1).optional(),
+  sort_order: z.coerce.number().int().min(0).optional()
+});
+
+export const ReorderPhotosSchema = z.object({
+  photo_ids: z.array(z.string().uuid()).min(1)
+});

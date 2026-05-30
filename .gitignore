@@ -8,3 +8,4 @@ dist
 .expo
 apps/api/.next
 apps/mobile/dist
+apps/api/public/uploads

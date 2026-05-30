@@ -105,6 +105,26 @@ export const bookings = pgTable(
   ]
 );
 
+export const restaurantPhotos = pgTable(
+  "restaurant_photos",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    restaurantId: uuid("restaurant_id")
+      .notNull()
+      .references(() => restaurants.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    storageKey: text("storage_key"),
+    isAvatar: boolean("is_avatar").notNull().default(false),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
+  },
+  (table) => [
+    uniqueIndex("restaurant_photos_avatar_unique")
+      .on(table.restaurantId)
+      .where(sql`${table.isAvatar} = true`)
+  ]
+);
+
 export const reviews = pgTable(
   "reviews",
   {
@@ -138,5 +158,6 @@ export const subscriptionsRevenue = pgTable("subscriptions_revenue", {
 
 export type UserRow = typeof users.$inferSelect;
 export type RestaurantRow = typeof restaurants.$inferSelect;
+export type RestaurantPhotoRow = typeof restaurantPhotos.$inferSelect;
 export type BookingRow = typeof bookings.$inferSelect;
 export type ReviewRow = typeof reviews.$inferSelect;

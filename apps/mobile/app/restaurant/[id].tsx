@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { FlatList, Pressable, Text, TextInput } from "react-native";
 import { ApiError } from "@tablebook/api-client";
+import { PhotoCarousel } from "@/components/photo-carousel";
 import { ListSeparator, Screen, ui } from "@/components/ui";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
@@ -21,6 +22,7 @@ export default function RestaurantScreen() {
   const locale: Locale = "ru";
   const dict = t(locale);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [galleryPhotos, setGalleryPhotos] = useState<Awaited<ReturnType<typeof api.getRestaurantPhotos>>["photos"]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [rating, setRating] = useState("5");
   const [body, setBody] = useState("");
@@ -34,6 +36,7 @@ export default function RestaurantScreen() {
     if (!id) return;
     api.getRestaurant(id).then(setRestaurant);
     api.getReviews(id).then(setReviews).catch(() => setReviews([]));
+    api.getRestaurantPhotos(id).then((data) => setGalleryPhotos(data.photos)).catch(() => setGalleryPhotos([]));
   }, [id]);
 
   useEffect(() => {
@@ -103,6 +106,7 @@ export default function RestaurantScreen() {
 
   return (
     <Screen title={getRestaurantName(restaurant, locale)} scrollable>
+      <PhotoCarousel photos={galleryPhotos} avatarUrl={restaurant.avatar_url} />
       <Text style={ui.muted}>
         ★ {restaurant.rating} · {restaurant.review_count} отзывов
       </Text>

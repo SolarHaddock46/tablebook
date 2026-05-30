@@ -1,15 +1,17 @@
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, Text, TextInput } from "react-native";
+import { RestaurantPhotoGallery } from "@/components/restaurant-photo-gallery";
 import { Screen, ui } from "@/components/ui";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
-import type { Restaurant } from "@tablebook/shared";
+import type { Restaurant, RestaurantPhoto } from "@tablebook/shared";
 
 export default function OwnerProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [photos, setPhotos] = useState<RestaurantPhoto[]>([]);
   const [nameRu, setNameRu] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -19,6 +21,7 @@ export default function OwnerProfileScreen() {
       .then((item) => {
         setRestaurant(item);
         setNameRu(item.name_ru);
+        setPhotos(item.photos ?? []);
       })
       .catch((err) => setError(err instanceof Error ? err.message : "No restaurant"));
   }, []);
@@ -49,6 +52,13 @@ export default function OwnerProfileScreen() {
         onChangeText={setNameRu}
       />
       {restaurant ? <Text style={ui.muted}>★ {restaurant.rating}</Text> : null}
+      {restaurant ? (
+        <RestaurantPhotoGallery
+          restaurantId={restaurant.id}
+          photos={photos}
+          onPhotosChange={setPhotos}
+        />
+      ) : null}
       <Pressable style={ui.button} onPress={save}>
         <Text style={ui.buttonText}>Сохранить</Text>
       </Pressable>

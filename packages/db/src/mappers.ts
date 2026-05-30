@@ -4,13 +4,14 @@ import type {
   BookingStatus,
   Locale,
   Restaurant,
+  RestaurantPhoto,
   RestaurantStatus,
   RestaurantTable,
   Review,
   User,
   UserRole
 } from "@tablebook/shared";
-import type { BookingRow, RestaurantRow, ReviewRow, UserRow } from "./schema/index";
+import type { BookingRow, RestaurantPhotoRow, RestaurantRow, ReviewRow, UserRow } from "./schema/index";
 
 export function mapUser(row: UserRow): User {
   return {
@@ -46,7 +47,7 @@ export function mapAuthUser(row: UserRow): AuthUser {
   };
 }
 
-export function mapRestaurant(row: RestaurantRow): Restaurant {
+export function mapRestaurant(row: RestaurantRow, extras?: { avatar_url?: string | null; photos?: RestaurantPhoto[] }): Restaurant {
   return {
     id: row.id,
     name_en: row.nameEn,
@@ -65,6 +66,19 @@ export function mapRestaurant(row: RestaurantRow): Restaurant {
     lng: Number(row.lng),
     owner_id: row.ownerId,
     status: row.status as RestaurantStatus,
+    created_at: row.createdAt.toISOString(),
+    avatar_url: extras?.avatar_url ?? null,
+    photos: extras?.photos
+  };
+}
+
+export function mapRestaurantPhoto(row: RestaurantPhotoRow): RestaurantPhoto {
+  return {
+    id: row.id,
+    restaurant_id: row.restaurantId,
+    url: row.url,
+    is_avatar: row.isAvatar,
+    sort_order: row.sortOrder,
     created_at: row.createdAt.toISOString()
   };
 }

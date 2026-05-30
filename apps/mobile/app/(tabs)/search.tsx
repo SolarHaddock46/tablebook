@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { RestaurantAvatar } from "@/components/restaurant-avatar";
 import {
   CUISINE_FILTER_OPTIONS,
   DISTRICT_FILTER_OPTIONS,
@@ -252,11 +253,16 @@ export default function SearchScreen() {
           ) : null}
           {recommendations.map((item) => (
             <Pressable key={item.id} style={ui.card} onPress={() => openRecommendation(item)}>
-              <Text style={ui.value}>{getRestaurantName(item, locale)}</Text>
-              <Text style={ui.muted}>
-                {getRestaurantDistrict(item, locale)} · ★ {item.rating} · {getPriceLabel(item.price_level)} ·{" "}
-                {item.has_availability ? dict.available : dict.unavailable}
-              </Text>
+              <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+                <RestaurantAvatar url={item.avatar_url} />
+                <View style={{ flex: 1, gap: 4 }}>
+                  <Text style={ui.value}>{getRestaurantName(item, locale)}</Text>
+                  <Text style={ui.muted}>
+                    {getRestaurantDistrict(item, locale)} · ★ {item.rating} · {getPriceLabel(item.price_level)} ·{" "}
+                    {item.has_availability ? dict.available : dict.unavailable}
+                  </Text>
+                </View>
+              </View>
             </Pressable>
           ))}
           {recommendations.length > 0 ? (

@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { getDb, mapRestaurant, restaurants } from "@tablebook/db";
 import { jsonError, requireRole } from "@/lib/auth-helpers";
+import { listRestaurantPhotos, loadAvatarUrls } from "@/lib/restaurant-photos-service";
 
 export async function GET(request: Request) {
   try {
@@ -16,7 +17,13 @@ export async function GET(request: Request) {
       return Response.json({ error: "Restaurant not found" }, { status: 404 });
     }
 
-    return Response.json(mapRestaurant(row));
+    const photos = await listRestaurantPhotos(row.id);
+    return Response.json(
+      mapRestaurant(row, {
+        avatar_url: photos.find((photo) => photo.is_avatar)?.url ?? null,
+        photos
+      })
+    );
   } catch (error) {
     return jsonError(error);
   }

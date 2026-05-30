@@ -10,6 +10,7 @@ import {
 } from "@tablebook/shared";
 import { getAuthUser } from "@/lib/auth-helpers";
 import { computeHasAvailability } from "@/lib/restaurants-service";
+import { loadAvatarUrls } from "@/lib/restaurant-photos-service";
 
 type ResolvedSearchFilters = {
   cuisines: string[];
@@ -93,9 +94,10 @@ async function enrichRestaurants(
   time: string,
   guests: number
 ): Promise<RestaurantSearchHit[]> {
+  const avatarUrls = await loadAvatarUrls(rows.map((row) => row.id));
   return Promise.all(
     rows.map(async (row) => {
-      const restaurant = mapRestaurant(row);
+      const restaurant = mapRestaurant(row, { avatar_url: avatarUrls.get(row.id) ?? null });
       const hasAvailability = await computeHasAvailability(restaurant, date, time, guests);
       return { ...restaurant, has_availability: hasAvailability };
     })

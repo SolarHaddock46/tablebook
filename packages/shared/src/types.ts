@@ -13,6 +13,15 @@ export type RestaurantTable = {
   capacity: number;
 };
 
+export type RestaurantPhoto = {
+  id: string;
+  restaurant_id: string;
+  url: string;
+  is_avatar: boolean;
+  sort_order: number;
+  created_at: string;
+};
+
 export type Restaurant = {
   id: string;
   name_en: string;
@@ -32,6 +41,8 @@ export type Restaurant = {
   owner_id: string | null;
   status: RestaurantStatus;
   created_at: string;
+  avatar_url?: string | null;
+  photos?: RestaurantPhoto[];
 };
 
 export type RestaurantSearchHit = Restaurant & {

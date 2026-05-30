@@ -4,6 +4,7 @@ import type {
   Locale,
   Restaurant,
   RestaurantAlternative,
+  RestaurantPhoto,
   RestaurantSearchResponse,
   Review,
   UserRole
@@ -31,7 +32,9 @@ export class TableBookClient {
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
     const token = this.options.getToken ? await this.options.getToken() : null;
     const headers = new Headers(init?.headers);
-    headers.set("Content-Type", "application/json");
+    if (!(init?.body instanceof FormData)) {
+      headers.set("Content-Type", "application/json");
+    }
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
     }
@@ -50,6 +53,15 @@ export class TableBookClient {
       );
     }
     return body as T;
+  }
+
+  private async requestRaw(path: string, init?: RequestInit): Promise<Response> {
+    const token = this.options.getToken ? await this.options.getToken() : null;
+    const headers = new Headers(init?.headers);
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+    return fetch(`${this.options.baseUrl}${path}`, { ...init, headers });
   }
 
   register(input: {
@@ -258,6 +270,74 @@ export class TableBookClient {
     return this.request<Restaurant>(`/api/v1/restaurants/${id}/tables`, {
       method: "PUT",
       body: JSON.stringify({ tables })
+    });
+  }
+
+  getRestaurantPhotos(restaurantId: string) {
+    return this.request<{ photos: RestaurantPhoto[] }>(`/api/v1/restaurants/${restaurantId}/photos`);
+  }
+
+  presignRestaurantPhoto(
+    restaurantId: string,
+    input: { content_type: string; file_name?: string }
+  ) {
+    return this.request<{ upload_url: string; public_url: string; storage_key: string }>(
+      `/api/v1/restaurants/${restaurantId}/photos/presign`,
+      {
+        method: "POST",
+        body: JSON.stringify(input)
+      }
+    );
+  }
+
+  registerRestaurantPhoto(
+    restaurantId: string,
+    input: { url: string; storage_key?: string; sort_order?: number }
+  ) {
+    return this.request<{ photo: RestaurantPhoto; photos: RestaurantPhoto[] }>(
+      `/api/v1/restaurants/${restaurantId}/photos`,
+      {
+        method: "POST",
+        body: JSON.stringify(input)
+      }
+    );
+  }
+
+  async uploadRestaurantPhotoLocal(restaurantId: string, file: Blob, fileName: string) {
+    const formData = new FormData();
+    formData.append("file", file, fileName);
+    const response = await this.requestRaw(`/api/v1/restaurants/${restaurantId}/photos/upload`, {
+      method: "POST",
+      body: formData
+    });
+    const body = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new ApiError(
+        (body as { error?: string })?.error ?? response.statusText,
+        response.status,
+        body
+      );
+    }
+    return body as { photo: RestaurantPhoto };
+  }
+
+  deleteRestaurantPhoto(restaurantId: string, photoId: string) {
+    return this.request<{ ok: true }>(`/api/v1/restaurants/${restaurantId}/photos/${photoId}`, {
+      method: "DELETE"
+    });
+  }
+
+  setRestaurantPhotoAvatar(restaurantId: string, photoId: string) {
+    return this.request<{ photos: RestaurantPhoto[] }>(
+      `/api/v1/restaurants/${restaurantId}/photos/${photoId}/set-avatar`,
+      { method: "PATCH" }
+    );
+  }
+
+  reorderRestaurantPhotos(restaurantId: string, photoIds: string[]) {
+    return this.request<{ photos: RestaurantPhoto[] }>(`/api/v1/restaurants/${restaurantId}/photos`, {
+      method: "PUT",
+      body: JSON.stringify({ photo_ids: photoIds })
     });
   }
 

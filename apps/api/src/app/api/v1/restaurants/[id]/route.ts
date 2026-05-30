@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { getDb, mapRestaurant, restaurants } from "@tablebook/db";
 import { UpdateRestaurantSchema } from "@tablebook/shared";
 import { getAuthUser, jsonError, requireOwner } from "@/lib/auth-helpers";
+import { listRestaurantPhotos, loadAvatarUrls } from "@/lib/restaurant-photos-service";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -22,7 +23,11 @@ export async function GET(request: Request, { params }: Props) {
     }
   }
 
-  return Response.json(mapRestaurant(row));
+  const user = await getAuthUser(request);
+  const photos = user?.id === row.ownerId ? await listRestaurantPhotos(row.id) : undefined;
+  const avatarUrl = (await loadAvatarUrls([row.id])).get(row.id) ?? null;
+
+  return Response.json(mapRestaurant(row, { avatar_url: avatarUrl, photos }));
 }
 
 export async function PATCH(request: Request, { params }: Props) {
