@@ -26,6 +26,12 @@ export const ResetPasswordSchema = z.object({
   password: z.string().min(8)
 });
 
+export const UserPreferencesSchema = z.object({
+  preferred_cuisines: z.array(z.string().min(1)).optional().nullable(),
+  preferred_districts: z.array(z.string().min(1)).optional().nullable(),
+  preferred_price_level: z.coerce.number().int().min(1).max(4).optional().nullable()
+});
+
 export const UpdateMeSchema = z.object({
   display_name: z.string().min(1).optional(),
   full_name: z.string().min(1).optional().nullable(),

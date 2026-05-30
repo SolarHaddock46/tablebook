@@ -57,11 +57,15 @@ export default function ProfileScreen() {
     await api.updateMe({
       display_name: displayName.trim() || undefined,
       full_name: fullName.trim() || null,
-      phone: phone.trim() || null,
-      preferred_cuisines: preferredCuisines.length > 0 ? preferredCuisines : null,
-      preferred_districts: preferredDistricts.length > 0 ? preferredDistricts : null,
-      preferred_price_level: preferredPriceLevel ? Number(preferredPriceLevel) : null
+      phone: phone.trim() || null
     });
+    if (user?.role === "user") {
+      await api.updatePreferences({
+        preferred_cuisines: preferredCuisines.length > 0 ? preferredCuisines : null,
+        preferred_districts: preferredDistricts.length > 0 ? preferredDistricts : null,
+        preferred_price_level: preferredPriceLevel ? Number(preferredPriceLevel) : null
+      });
+    }
     await refreshMe();
     setMessage(dict.profileSaved);
   }

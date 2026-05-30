@@ -141,6 +141,17 @@ export class TableBookClient {
     });
   }
 
+  updatePreferences(input: {
+    preferred_cuisines?: string[] | null;
+    preferred_districts?: string[] | null;
+    preferred_price_level?: number | null;
+  }) {
+    return this.request<AuthUser>("/api/v1/users/preferences", {
+      method: "PATCH",
+      body: JSON.stringify(input)
+    });
+  }
+
   getRestaurants(params: Record<string, string | number | undefined>) {
     const query = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {

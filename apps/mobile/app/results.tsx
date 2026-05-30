@@ -20,46 +20,91 @@ export default function ResultsScreen() {
     date?: string;
     time?: string;
     guests?: string;
+    search_error?: string;
+    from_recommendations?: string;
   }>();
   const router = useRouter();
   const locale: Locale = "ru";
   const dict = t(locale);
+  const fromRecommendations = params.from_recommendations === "1";
   const [items, setItems] = useState<RestaurantSearchHit[]>([]);
   const [isFallback, setIsFallback] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [searchError, setSearchError] = useState<string | null>(
+    fromRecommendations ? null : readSearchErrorParam(params.search_error)
+  );
 
   useEffect(() => {
     async function load() {
       setLoading(true);
+      if (!fromRecommendations) {
+        setSearchError(readSearchErrorParam(params.search_error));
+      } else {
+        setSearchError(null);
+      }
       try {
-        const data = await api.getRestaurants({
-          cuisine: params.cuisine,
-          district: params.district,
-          price_level: params.price_level,
+        const query: Record<string, string | number | undefined> = {
           date: params.date,
           time: params.time,
           guests: params.guests,
           locale
-        });
+        };
+        if (params.cuisine !== undefined) {
+          query.cuisine = params.cuisine;
+        }
+        if (params.district !== undefined) {
+          query.district = params.district;
+        }
+        if (params.price_level !== undefined) {
+          query.price_level = params.price_level;
+        }
+        const data = await api.getRestaurants(query);
         setItems(data.results);
         setIsFallback(data.is_fallback);
+        setSearchError(null);
+      } catch (err) {
+        setItems([]);
+        setIsFallback(false);
+        if (!fromRecommendations) {
+          setSearchError(err instanceof Error ? err.message : dict.searchError);
+        }
       } finally {
         setLoading(false);
       }
     }
     load();
-  }, [locale, params.cuisine, params.district, params.date, params.guests, params.time]);
+  }, [
+    dict.searchError,
+    fromRecommendations,
+    locale,
+    params.cuisine,
+    params.district,
+    params.date,
+    params.guests,
+    params.price_level,
+    params.search_error,
+    params.time
+  ]);
+
+  const showSearchMessage = !fromRecommendations && (searchError !== null || isFallback);
 
   return (
-    <Screen title="Результаты">
-      {isFallback ? <Text style={ui.muted}>{dict.searchFallbackHint}</Text> : null}
+    <Screen title={fromRecommendations ? dict.recommendationsTitle : dict.results}>
+      {searchError ? <Text style={{ color: "#f87171" }}>{searchError}</Text> : null}
+      {!searchError && isFallback && !fromRecommendations ? (
+        <Text style={ui.muted}>{dict.searchFallbackHint}</Text>
+      ) : null}
       <FlatList
         style={ui.flatList}
         contentContainerStyle={ui.listContent}
         data={items}
         keyExtractor={(item) => item.id}
         ItemSeparatorComponent={ListSeparator}
-        ListEmptyComponent={<Text style={ui.muted}>{loading ? "Загрузка..." : dict.noData}</Text>}
+        ListEmptyComponent={
+          <Text style={ui.muted}>
+            {loading ? "Загрузка..." : showSearchMessage ? dict.noDataHint : dict.noData}
+          </Text>
+        }
         renderItem={({ item }) => (
           <Pressable
             style={ui.card}
@@ -80,10 +125,10 @@ export default function ResultsScreen() {
               {getRestaurantDistrict(item, locale)} · ★ {item.rating} ({item.review_count}) ·{" "}
               {getPriceLabel(item.price_level)} · {item.has_availability ? dict.available : dict.unavailable}
             </Text>
-            {isFallback && item.matchReasons && item.matchReasons.length > 0 ? (
+            {isFallback && !fromRecommendations && item.matchReasons && item.matchReasons.length > 0 ? (
               <MatchReasons reasons={item.matchReasons} />
             ) : null}
-            {isFallback && item.matchScore !== undefined ? (
+            {isFallback && !fromRecommendations && item.matchScore !== undefined ? (
               <Text style={ui.muted}>
                 {item.matchScore}% {dict.matching}
               </Text>
@@ -93,4 +138,11 @@ export default function ResultsScreen() {
       />
     </Screen>
   );
+}
+
+function readSearchErrorParam(value: string | string[] | undefined): string | null {
+  if (typeof value === "string" && value.length > 0) {
+    return value;
+  }
+  return null;
 }
