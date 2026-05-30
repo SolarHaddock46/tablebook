@@ -119,3 +119,13 @@ export const RegisterPhotoSchema = z.object({
 export const ReorderPhotosSchema = z.object({
   photo_ids: z.array(z.string().uuid()).min(1)
 });
+
+export const SubscriptionPaySchema = z.object({
+  plan_id: z.string().uuid()
+});
+
+export const BlacklistEntrySchema = z.object({
+  guest_phone: z.string().min(5),
+  guest_name: z.string().min(1).optional(),
+  reason: z.string().max(500).optional()
+});

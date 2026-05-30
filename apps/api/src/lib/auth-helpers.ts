@@ -61,6 +61,14 @@ export function jsonError(error: unknown, fallbackStatus = 500) {
   if (error instanceof AuthError) {
     return Response.json({ error: error.message }, { status: error.status });
   }
+  if (error instanceof Error && "status" in error) {
+    const status = (error as Error & { status?: number }).status ?? fallbackStatus;
+    const code = (error as Error & { code?: string }).code;
+    return Response.json(
+      { error: error.message, ...(code ? { code } : {}) },
+      { status }
+    );
+  }
   if (error instanceof Error) {
     return Response.json({ error: error.message }, { status: fallbackStatus });
   }

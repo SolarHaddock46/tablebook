@@ -395,6 +395,58 @@ export class TableBookClient {
       body: JSON.stringify({ event_name, payload })
     });
   }
+
+  getSubscriptionPlans() {
+    return this.request<{ plans: import("@tablebook/shared").SubscriptionPlan[] }>(
+      "/api/v1/subscription/plans"
+    );
+  }
+
+  getSubscriptionStatus() {
+    return this.request<{ subscription: import("@tablebook/shared").RestaurantSubscription | null }>(
+      "/api/v1/subscription/status"
+    );
+  }
+
+  paySubscription(planId: string) {
+    return this.request<{ subscription: import("@tablebook/shared").RestaurantSubscription }>(
+      "/api/v1/subscription/pay",
+      {
+        method: "POST",
+        body: JSON.stringify({ plan_id: planId })
+      }
+    );
+  }
+
+  cancelSubscription() {
+    return this.request<{ subscription: import("@tablebook/shared").RestaurantSubscription }>(
+      "/api/v1/subscription/cancel",
+      { method: "POST" }
+    );
+  }
+
+  getOwnerAnalytics(days?: number) {
+    const query = days ? `?days=${days}` : "";
+    return this.request<import("@tablebook/shared").SubscriptionAnalyticsSummary>(
+      `/api/v1/owner/analytics${query}`
+    );
+  }
+
+  getOwnerBlacklist() {
+    return this.request<{ entries: import("@tablebook/shared").RestaurantBlacklistEntry[] }>(
+      "/api/v1/owner/blacklist"
+    );
+  }
+
+  addOwnerBlacklistEntry(input: { guest_phone: string; guest_name?: string; reason?: string }) {
+    return this.request<{ entry: import("@tablebook/shared").RestaurantBlacklistEntry }>(
+      "/api/v1/owner/blacklist",
+      {
+        method: "POST",
+        body: JSON.stringify(input)
+      }
+    );
+  }
 }
 
 export function createApiClient(options: ApiClientOptions) {

@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { getDb, mapRestaurant, restaurants } from "@tablebook/db";
 import { OnboardRestaurantSchema } from "@tablebook/shared";
 import { jsonError, requireRole } from "@/lib/auth-helpers";
+import { createTrialSubscription } from "@/lib/subscription-service";
 
 export async function POST(request: Request) {
   try {
@@ -31,6 +32,8 @@ export async function POST(request: Request) {
         tables: []
       })
       .returning();
+
+    await createTrialSubscription(row.id);
 
     return Response.json(mapRestaurant(row), { status: 201 });
   } catch (error) {

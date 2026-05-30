@@ -43,6 +43,7 @@ export type Restaurant = {
   created_at: string;
   avatar_url?: string | null;
   photos?: RestaurantPhoto[];
+  is_premium?: boolean;
 };
 
 export type RestaurantSearchHit = Restaurant & {
@@ -138,4 +139,68 @@ export type AuthUser = {
   preferred_cuisines: string[] | null;
   preferred_districts: string[] | null;
   preferred_price_level: number | null;
+};
+
+export type SubscriptionPlanType = "trial" | "premium";
+
+export type SubscriptionStatus = "trial" | "active" | "expired" | "cancelled";
+
+export type SubscriptionPlan = {
+  id: string;
+  name: SubscriptionPlanType;
+  price_cents: number;
+  max_bookings_monthly: number;
+  features: string[];
+  created_at: string;
+};
+
+export type RestaurantSubscription = {
+  id: string;
+  restaurant_id: string;
+  plan_id: string;
+  plan_name: SubscriptionPlanType;
+  status: SubscriptionStatus;
+  started_at: string;
+  expires_at: string | null;
+  bookings_this_month: number;
+  bookings_remaining: number | null;
+  last_reset_at: string;
+  created_at: string;
+};
+
+export type SubscriptionPayment = {
+  id: string;
+  subscription_id: string;
+  amount_cents: number;
+  status: string;
+  created_at: string;
+};
+
+export type RestaurantBlacklistEntry = {
+  id: string;
+  restaurant_id: string;
+  guest_phone: string;
+  guest_name: string | null;
+  reason: string | null;
+  created_at: string;
+};
+
+export type SubscriptionAnalyticsDay = {
+  date: string;
+  total_bookings: number;
+  confirmed_bookings: number;
+  cancelled_bookings: number;
+  revenue_cents: number;
+  occupancy_rate: number;
+};
+
+export type SubscriptionAnalyticsSummary = {
+  days: SubscriptionAnalyticsDay[];
+  totals: {
+    total_bookings: number;
+    confirmed_bookings: number;
+    cancelled_bookings: number;
+    revenue_cents: number;
+    avg_occupancy_rate: number;
+  };
 };

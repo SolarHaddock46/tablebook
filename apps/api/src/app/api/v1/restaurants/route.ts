@@ -11,6 +11,7 @@ import {
 import { getAuthUser } from "@/lib/auth-helpers";
 import { computeHasAvailability } from "@/lib/restaurants-service";
 import { loadAvatarUrls } from "@/lib/restaurant-photos-service";
+import { loadPremiumRestaurantIds } from "@/lib/subscription-service";
 
 type ResolvedSearchFilters = {
   cuisines: string[];
@@ -50,18 +51,20 @@ export async function GET(request: Request) {
     .limit(limit)
     .offset(offset);
 
-  const strictResults = await enrichRestaurants(rows, date, time, guests);
+  const premiumIds = await loadPremiumRestaurantIds();
+  const strictResults = await enrichRestaurants(rows, date, time, guests, premiumIds);
 
   if (strictResults.length > 0) {
+    const sorted = sortByPremium(strictResults);
     const response: RestaurantSearchResponse = {
-      results: strictResults,
+      results: sorted,
       is_fallback: false
     };
     return Response.json(response);
   }
 
   const allRows = await db.select().from(restaurants).where(eq(restaurants.status, "active")).limit(Constants.MaxLimit);
-  const allEnriched = await enrichRestaurants(allRows, date, time, guests);
+  const allEnriched = await enrichRestaurants(allRows, date, time, guests, premiumIds);
   const fallbackResults = computeSearchFallback(
     {
       cuisine: filters.cuisines[0],
@@ -92,16 +95,32 @@ async function enrichRestaurants(
   rows: Array<(typeof restaurants.$inferSelect)>,
   date: string,
   time: string,
-  guests: number
+  guests: number,
+  premiumIds: Set<string>
 ): Promise<RestaurantSearchHit[]> {
   const avatarUrls = await loadAvatarUrls(rows.map((row) => row.id));
   return Promise.all(
     rows.map(async (row) => {
       const restaurant = mapRestaurant(row, { avatar_url: avatarUrls.get(row.id) ?? null });
       const hasAvailability = await computeHasAvailability(restaurant, date, time, guests);
-      return { ...restaurant, has_availability: hasAvailability };
+      return {
+        ...restaurant,
+        has_availability: hasAvailability,
+        is_premium: premiumIds.has(row.id)
+      };
     })
   );
+}
+
+function sortByPremium(results: RestaurantSearchHit[]): RestaurantSearchHit[] {
+  return [...results].sort((left, right) => {
+    const leftPremium = left.is_premium ? 1 : 0;
+    const rightPremium = right.is_premium ? 1 : 0;
+    if (rightPremium !== leftPremium) {
+      return rightPremium - leftPremium;
+    }
+    return right.rating - left.rating;
+  });
 }
 
 async function resolveSearchFilters(

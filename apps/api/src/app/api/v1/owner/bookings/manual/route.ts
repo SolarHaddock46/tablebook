@@ -4,6 +4,7 @@ import { ManualBookingSchema } from "@tablebook/shared";
 import { jsonError, requireOwner } from "@/lib/auth-helpers";
 import { logEvent } from "@/lib/events";
 import { getAvailabilityForRestaurant } from "@/lib/restaurants-service";
+import { incrementBookingCount, isGuestBlacklisted } from "@/lib/subscription-service";
 
 export async function POST(request: Request) {
   try {
@@ -36,6 +37,11 @@ export async function POST(request: Request) {
       return Response.json({ error: "Slot unavailable" }, { status: 409 });
     }
 
+    const blacklisted = await isGuestBlacklisted(parsed.data.restaurant_id, parsed.data.guest_phone);
+    if (blacklisted) {
+      return Response.json({ error: "Guest is blacklisted", code: "GUEST_BLACKLISTED" }, { status: 403 });
+    }
+
     try {
       const [bookingRow] = await db
         .insert(bookings)
@@ -64,6 +70,8 @@ export async function POST(request: Request) {
         },
         authUser.id
       );
+
+      await incrementBookingCount(parsed.data.restaurant_id);
 
       return Response.json({ booking: mapBooking(bookingRow) }, { status: 201 });
     } catch (error) {

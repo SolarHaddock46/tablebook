@@ -86,6 +86,16 @@ export default function OwnerLayout() {
           )
         }}
       />
+      <Tabs.Screen
+        name="subscription"
+        options={{
+          title: "Подписка",
+          href: hasRestaurant ? undefined : null,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon activeName="diamond" inactiveName="diamond-outline" color={color} focused={focused} />
+          )
+        }}
+      />
     </Tabs>
   );
 }

@@ -4,6 +4,12 @@ import { BookingSchema } from "@tablebook/shared";
 import { jsonError, requireAuth } from "@/lib/auth-helpers";
 import { logEvent } from "@/lib/events";
 import { getAvailabilityForRestaurant } from "@/lib/restaurants-service";
+import {
+  checkBookingLimit,
+  incrementBookingCount,
+  isGuestBlacklisted,
+  SubscriptionError
+} from "@/lib/subscription-service";
 
 export async function POST(request: Request) {
   try {
@@ -43,6 +49,22 @@ export async function POST(request: Request) {
     }
 
     try {
+      await checkBookingLimit(parsed.data.restaurant_id);
+    } catch (error) {
+      if (error instanceof SubscriptionError) {
+        return jsonError(error);
+      }
+      throw error;
+    }
+
+    if (authUser.phone) {
+      const blacklisted = await isGuestBlacklisted(parsed.data.restaurant_id, authUser.phone);
+      if (blacklisted) {
+        return Response.json({ error: "Booking not allowed", code: "GUEST_BLACKLISTED" }, { status: 403 });
+      }
+    }
+
+    try {
       const [bookingRow] = await db
         .insert(bookings)
         .values({
@@ -67,6 +89,8 @@ export async function POST(request: Request) {
         },
         authUser.id
       );
+
+      await incrementBookingCount(parsed.data.restaurant_id);
 
       if (bookingRow.source === "ai-alternative") {
         await logEvent("alternative_booking_success", { booking_id: bookingRow.id }, authUser.id);

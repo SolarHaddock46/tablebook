@@ -32,6 +32,15 @@ export const restaurantStatusEnum = pgEnum("restaurant_status", [
   "suspended"
 ]);
 
+export const subscriptionPlanTypeEnum = pgEnum("subscription_plan_type", ["trial", "premium"]);
+
+export const subscriptionStatusEnum = pgEnum("subscription_status", [
+  "trial",
+  "active",
+  "expired",
+  "cancelled"
+]);
+
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
@@ -157,8 +166,83 @@ export const subscriptionsRevenue = pgTable("subscriptions_revenue", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
 });
 
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: subscriptionPlanTypeEnum("name").notNull().unique(),
+  priceCents: integer("price_cents").notNull(),
+  maxBookingsMonthly: integer("max_bookings_monthly").notNull(),
+  features: jsonb("features").notNull().default([]),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
+});
+
+export const restaurantSubscriptions = pgTable(
+  "restaurant_subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    restaurantId: uuid("restaurant_id")
+      .notNull()
+      .references(() => restaurants.id, { onDelete: "cascade" }),
+    planId: uuid("plan_id")
+      .notNull()
+      .references(() => subscriptionPlans.id),
+    status: subscriptionStatusEnum("status").notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    bookingsThisMonth: integer("bookings_this_month").notNull().default(0),
+    lastResetAt: timestamp("last_reset_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
+  },
+  (table) => [index("idx_restaurant_subscriptions_restaurant").on(table.restaurantId)]
+);
+
+export const subscriptionPayments = pgTable("subscription_payments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  subscriptionId: uuid("subscription_id")
+    .notNull()
+    .references(() => restaurantSubscriptions.id, { onDelete: "cascade" }),
+  amountCents: integer("amount_cents").notNull(),
+  status: text("status").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
+});
+
+export const restaurantBlacklist = pgTable("restaurant_blacklist", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  restaurantId: uuid("restaurant_id")
+    .notNull()
+    .references(() => restaurants.id, { onDelete: "cascade" }),
+  guestPhone: text("guest_phone").notNull(),
+  guestName: text("guest_name"),
+  reason: text("reason"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
+});
+
+export const subscriptionAnalytics = pgTable(
+  "subscription_analytics",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    restaurantId: uuid("restaurant_id")
+      .notNull()
+      .references(() => restaurants.id, { onDelete: "cascade" }),
+    date: date("date").notNull(),
+    totalBookings: integer("total_bookings").notNull().default(0),
+    confirmedBookings: integer("confirmed_bookings").notNull().default(0),
+    cancelledBookings: integer("cancelled_bookings").notNull().default(0),
+    revenueCents: integer("revenue_cents").notNull().default(0),
+    occupancyRate: numeric("occupancy_rate", { precision: 5, scale: 2 }).notNull().default("0"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
+  },
+  (table) => [
+    uniqueIndex("subscription_analytics_restaurant_date").on(table.restaurantId, table.date)
+  ]
+);
+
 export type UserRow = typeof users.$inferSelect;
 export type RestaurantRow = typeof restaurants.$inferSelect;
 export type RestaurantPhotoRow = typeof restaurantPhotos.$inferSelect;
 export type BookingRow = typeof bookings.$inferSelect;
 export type ReviewRow = typeof reviews.$inferSelect;
+export type SubscriptionPlanRow = typeof subscriptionPlans.$inferSelect;
+export type RestaurantSubscriptionRow = typeof restaurantSubscriptions.$inferSelect;
+export type SubscriptionPaymentRow = typeof subscriptionPayments.$inferSelect;
+export type RestaurantBlacklistRow = typeof restaurantBlacklist.$inferSelect;
+export type SubscriptionAnalyticsRow = typeof subscriptionAnalytics.$inferSelect;

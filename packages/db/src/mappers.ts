@@ -4,14 +4,30 @@ import type {
   BookingStatus,
   Locale,
   Restaurant,
+  RestaurantBlacklistEntry,
   RestaurantPhoto,
   RestaurantStatus,
+  RestaurantSubscription,
   RestaurantTable,
   Review,
+  SubscriptionAnalyticsDay,
+  SubscriptionPlan,
+  SubscriptionPlanType,
+  SubscriptionStatus,
   User,
   UserRole
 } from "@tablebook/shared";
-import type { BookingRow, RestaurantPhotoRow, RestaurantRow, ReviewRow, UserRow } from "./schema/index";
+import type {
+  BookingRow,
+  RestaurantBlacklistRow,
+  RestaurantPhotoRow,
+  RestaurantRow,
+  RestaurantSubscriptionRow,
+  ReviewRow,
+  SubscriptionAnalyticsRow,
+  SubscriptionPlanRow,
+  UserRow
+} from "./schema/index";
 
 export function mapUser(row: UserRow): User {
   return {
@@ -116,5 +132,60 @@ export function mapReview(row: ReviewRow, authorName?: string | null): Review {
     body: row.body,
     created_at: row.createdAt.toISOString(),
     author_name: authorName ?? null
+  };
+}
+
+export function mapSubscriptionPlan(row: SubscriptionPlanRow): SubscriptionPlan {
+  return {
+    id: row.id,
+    name: row.name as SubscriptionPlanType,
+    price_cents: row.priceCents,
+    max_bookings_monthly: row.maxBookingsMonthly,
+    features: (row.features as string[]) ?? [],
+    created_at: row.createdAt.toISOString()
+  };
+}
+
+export function mapRestaurantSubscription(
+  row: RestaurantSubscriptionRow,
+  planName: SubscriptionPlanType,
+  maxBookingsMonthly: number
+): RestaurantSubscription {
+  const bookingsRemaining =
+    maxBookingsMonthly >= 999999 ? null : Math.max(0, maxBookingsMonthly - row.bookingsThisMonth);
+  return {
+    id: row.id,
+    restaurant_id: row.restaurantId,
+    plan_id: row.planId,
+    plan_name: planName,
+    status: row.status as SubscriptionStatus,
+    started_at: row.startedAt.toISOString(),
+    expires_at: row.expiresAt?.toISOString() ?? null,
+    bookings_this_month: row.bookingsThisMonth,
+    bookings_remaining: bookingsRemaining,
+    last_reset_at: row.lastResetAt.toISOString(),
+    created_at: row.createdAt.toISOString()
+  };
+}
+
+export function mapBlacklistEntry(row: RestaurantBlacklistRow): RestaurantBlacklistEntry {
+  return {
+    id: row.id,
+    restaurant_id: row.restaurantId,
+    guest_phone: row.guestPhone,
+    guest_name: row.guestName,
+    reason: row.reason,
+    created_at: row.createdAt.toISOString()
+  };
+}
+
+export function mapSubscriptionAnalyticsDay(row: SubscriptionAnalyticsRow): SubscriptionAnalyticsDay {
+  return {
+    date: String(row.date),
+    total_bookings: row.totalBookings,
+    confirmed_bookings: row.confirmedBookings,
+    cancelled_bookings: row.cancelledBookings,
+    revenue_cents: row.revenueCents,
+    occupancy_rate: Number(row.occupancyRate)
   };
 }

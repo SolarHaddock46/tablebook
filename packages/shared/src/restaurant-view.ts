@@ -76,6 +76,10 @@ export function computeSearchFallback(
       matchReasons.push(reasons.highRating);
     }
 
+    if (restaurant.is_premium) {
+      score += 20;
+    }
+
     score += restaurant.rating * 2;
 
     return {

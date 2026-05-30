@@ -21,6 +21,9 @@ function RootNavigator() {
       rootSegment === "review" ||
       rootSegment === "restaurant" ||
       rootSegment === "reset-password" ||
+      rootSegment === "subscription-checkout" ||
+      rootSegment === "analytics" ||
+      rootSegment === "blacklist" ||
       (inAuth && authSegment === "reset-password");
 
     if (!user && !inAuth && !inPublicAuthFlow) {

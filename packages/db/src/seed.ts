@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
-import { inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { getDb, closeDb } from "./client";
 import { recalculateRestaurantRating } from "./reviews";
-import { bookings, restaurants, reviews, users } from "./schema/index";
+import { bookings, restaurants, restaurantSubscriptions, reviews, subscriptionPlans, users } from "./schema/index";
 
 type SeedUser = {
   email: string;
@@ -309,6 +309,8 @@ async function run() {
     })
     .from(restaurants);
 
+  await seedSubscriptions(db, restaurantRows.map((row) => row.id));
+
   const todayIso = new Date().toISOString().slice(0, 10);
   const usedConfirmedSlots = new Set<string>();
   const createdBookings: Array<{ userId: string; restaurantId: string; date: string; status: string }> = [];
@@ -531,6 +533,30 @@ function randomReviewText(rating: number): string {
   if (rating >= 5) return "Отличный сервис и очень вкусно.";
   if (rating === 4) return "В целом хорошо, вернусь еще.";
   return "Нормально, но есть куда улучшать.";
+}
+
+async function seedSubscriptions(db: ReturnType<typeof getDb>, restaurantIds: string[]) {
+  const [trialPlan] = await db
+    .select()
+    .from(subscriptionPlans)
+    .where(eq(subscriptionPlans.name, "trial"))
+    .limit(1);
+
+  if (!trialPlan || restaurantIds.length === 0) {
+    return;
+  }
+
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 30);
+
+  await db.insert(restaurantSubscriptions).values(
+    restaurantIds.map((restaurantId) => ({
+      restaurantId,
+      planId: trialPlan.id,
+      status: "trial" as const,
+      expiresAt
+    }))
+  );
 }
 
 run().catch(async (error) => {

@@ -4,6 +4,7 @@ import type { BookingRow } from "@tablebook/db";
 import { canSendReviewReminder, type Locale } from "@tablebook/shared";
 import { sendReviewReminderEmail } from "@/lib/email";
 import { signReviewReminderToken } from "@/lib/review-reminder-token";
+import { isRestaurantPremium } from "@/lib/subscription-service";
 
 export type ReviewReminderSendResult =
   | { sent: true; bookingId: string }
@@ -48,6 +49,11 @@ export async function sendReviewReminderForBooking(
 
   if (!restaurantRow) {
     return { sent: false, bookingId: row.id, reason: "restaurant_not_found" };
+  }
+
+  const premium = await isRestaurantPremium(row.restaurantId);
+  if (!premium) {
+    return { sent: false, bookingId: row.id, reason: "premium_required" };
   }
 
   const locale = userRow.locale as Locale;
