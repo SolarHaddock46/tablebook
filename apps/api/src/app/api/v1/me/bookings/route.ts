@@ -17,6 +17,7 @@ export async function GET(request: Request) {
     }
     if (upcoming === "true") {
       filters.push(gte(bookings.date, today));
+      filters.push(eq(bookings.status, "confirmed"));
     }
     if (upcoming === "false") {
       filters.push(lt(bookings.date, today));

@@ -3,7 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text } from "react-native";
 import { Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
+import { ApiError } from "@tablebook/api-client";
 import {
+  canCancelBooking,
   getRestaurantName,
   isPastVisitBooking,
   t,
@@ -19,22 +21,43 @@ export default function BookingDetailScreen() {
   const dict = t(locale);
   const [booking, setBooking] = useState<(Booking & { restaurant?: Restaurant }) | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
     if (!id) return;
     api.getBooking(id).then(setBooking);
   }, [id]);
 
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
   const canLeaveReview = useMemo(() => {
     if (!booking) return false;
     return isPastVisitBooking(booking);
   }, [booking]);
 
+  const cancellation = useMemo(() => {
+    if (!booking) return null;
+    return canCancelBooking(booking, now);
+  }, [booking, now]);
+
   async function cancel() {
-    if (!id) return;
-    await api.cancelBooking(id);
-    setMessage("Бронь отменена");
-    setBooking(await api.getBooking(id));
+    if (!id || !cancellation?.allowed) return;
+    setError(null);
+    try {
+      await api.cancelBooking(id);
+      setMessage(dict.bookingCancelled);
+      setBooking(await api.getBooking(id));
+    } catch (caught) {
+      if (caught instanceof ApiError && caught.status === 403) {
+        setError(dict.cancelWindowExpired);
+        return;
+      }
+      setError(caught instanceof Error ? caught.message : "Не удалось отменить бронь");
+    }
   }
 
   function openReview() {
@@ -62,20 +85,77 @@ export default function BookingDetailScreen() {
         {booking.date} · {booking.time}
       </Text>
       <Text style={ui.muted}>Статус: {booking.status}</Text>
+      {renderCancellationHint(cancellation, dict, locale)}
       {message ? <Text style={ui.link}>{message}</Text> : null}
+      {error ? <Text style={[ui.muted, { color: "#f87171" }]}>{error}</Text> : null}
       {canLeaveReview ? (
         <Pressable style={ui.button} onPress={openReview}>
           <Text style={ui.buttonText}>{dict.writeReview}</Text>
         </Pressable>
       ) : null}
-      {booking.status === "confirmed" && !isPastVisitBooking(booking) ? (
-        <Pressable style={[ui.button, { backgroundColor: "#ef4444" }]} onPress={cancel}>
-          <Text style={ui.buttonText}>Отменить</Text>
-        </Pressable>
-      ) : null}
+      {renderCancelButton(booking, cancellation, dict, cancel)}
       <Pressable style={[ui.button, { backgroundColor: "#334155" }]} onPress={() => router.back()}>
-        <Text style={[ui.buttonText, { color: "#f8fafc" }]}>Назад</Text>
+        <Text style={[ui.buttonText, { color: "#f8fafc" }]}>{dict.back}</Text>
       </Pressable>
     </Screen>
   );
+}
+
+function renderCancellationHint(
+  cancellation: ReturnType<typeof canCancelBooking> | null,
+  dict: ReturnType<typeof t>,
+  locale: Locale
+) {
+  if (!cancellation) {
+    return null;
+  }
+
+  if (cancellation.allowed) {
+    return (
+      <Text style={ui.muted}>
+        {dict.cancelUntil.replace("{deadline}", formatDeadline(cancellation.deadline, locale))}
+      </Text>
+    );
+  }
+
+  if (cancellation.reason === "not_confirmed") {
+    return null;
+  }
+
+  if (cancellation.reason === "window_expired") {
+    return <Text style={ui.muted}>{dict.cancelWindowExpired}</Text>;
+  }
+
+  return null;
+}
+
+function renderCancelButton(
+  booking: Booking,
+  cancellation: ReturnType<typeof canCancelBooking> | null,
+  dict: ReturnType<typeof t>,
+  onCancel: () => void
+) {
+  if (booking.status !== "confirmed" || isPastVisitBooking(booking)) {
+    return null;
+  }
+
+  const disabled = !cancellation?.allowed;
+  return (
+    <Pressable
+      style={[ui.button, { backgroundColor: disabled ? "#64748b" : "#ef4444" }]}
+      onPress={onCancel}
+      disabled={disabled}
+    >
+      <Text style={ui.buttonText}>{dict.cancelBooking}</Text>
+    </Pressable>
+  );
+}
+
+function formatDeadline(deadline: Date, locale: Locale): string {
+  return deadline.toLocaleString(locale === "ru" ? "ru-RU" : "en-US", {
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }

@@ -1,5 +1,6 @@
 import { and, eq, gte } from "drizzle-orm";
 import { bookings, getDb, mapBooking } from "@tablebook/db";
+import { canCancelBooking } from "@tablebook/shared";
 import { jsonError, requireAuth } from "@/lib/auth-helpers";
 
 type Props = {
@@ -20,11 +21,23 @@ export async function PATCH(request: Request, { params }: Props) {
     if (row.userId !== authUser.id) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
-    if (row.status !== "confirmed") {
+    const booking = mapBooking(row);
+    const cancellation = canCancelBooking(booking);
+    if (!cancellation.allowed) {
+      if (cancellation.reason === "window_expired") {
+        return Response.json(
+          {
+            error: "Cancellation window expired",
+            code: "CANCELLATION_WINDOW_EXPIRED",
+            cancellation_deadline: cancellation.deadline.toISOString()
+          },
+          { status: 403 }
+        );
+      }
+      if (cancellation.reason === "past") {
+        return Response.json({ error: "Past bookings cannot be cancelled" }, { status: 400 });
+      }
       return Response.json({ error: "Booking cannot be cancelled" }, { status: 400 });
-    }
-    if (String(row.date) < today) {
-      return Response.json({ error: "Past bookings cannot be cancelled" }, { status: 400 });
     }
 
     const [updated] = await db

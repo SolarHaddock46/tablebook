@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
-import { useRouter } from "expo-router";
 import { ListSeparator, Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
 import { isPastVisitBooking, t, type Booking, type Locale } from "@tablebook/shared";
@@ -23,9 +23,11 @@ export default function BookingsScreen() {
     }
   }, [scope]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
   return (
     <Screen title="Мои брони">

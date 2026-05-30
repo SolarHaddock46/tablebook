@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { bookings, getDb, mapBooking, mapRestaurant, restaurants } from "@tablebook/db";
+import { canCancelBooking } from "@tablebook/shared";
 import { jsonError, requireAuth } from "@/lib/auth-helpers";
 
 type Props = {
@@ -33,8 +34,13 @@ export async function GET(request: Request, { params }: Props) {
       .where(eq(restaurants.id, row.restaurantId))
       .limit(1);
 
+    const booking = mapBooking(row);
+    const cancellation = canCancelBooking(booking);
+
     return Response.json({
-      ...mapBooking(row),
+      ...booking,
+      can_cancel: cancellation.allowed,
+      cancellation_deadline: cancellation.deadline.toISOString(),
       restaurant: restaurantRow ? mapRestaurant(restaurantRow) : undefined
     });
   } catch (error) {
