@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { getDb, mapUser, users } from "@tablebook/db";
+import { getDb, mapAuthUser, users } from "@tablebook/db";
 import { UpdateMeSchema } from "@tablebook/shared";
 import { jsonError, requireAuth } from "@/lib/auth-helpers";
 
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     if (!row) {
       return Response.json({ error: "User not found" }, { status: 404 });
     }
-    return Response.json(mapUser(row));
+    return Response.json(mapAuthUser(row));
   } catch (error) {
     return jsonError(error);
   }
@@ -40,7 +40,7 @@ export async function PATCH(request: Request) {
       .where(eq(users.id, authUser.id))
       .returning();
 
-    return Response.json(mapUser(row));
+    return Response.json(mapAuthUser(row));
   } catch (error) {
     return jsonError(error);
   }

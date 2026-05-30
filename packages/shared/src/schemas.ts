@@ -12,6 +12,15 @@ export const LoginSchema = z.object({
   password: z.string().min(1)
 });
 
+export const ForgotPasswordSchema = z.object({
+  email: z.string().email()
+});
+
+export const ResetPasswordSchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(8)
+});
+
 export const UpdateMeSchema = z.object({
   display_name: z.string().min(1).optional(),
   locale: z.enum(["ru", "en"]).optional()

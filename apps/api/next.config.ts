@@ -1,4 +1,7 @@
+import { loadEnv } from "@tablebook/db";
 import type { NextConfig } from "next";
+
+loadEnv();
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@tablebook/shared", "@tablebook/db"],

@@ -35,10 +35,6 @@ export function loadEnv() {
   }
   loaded = true;
 
-  if (process.env.DATABASE_URL) {
-    return;
-  }
-
   const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const monorepoRoot = path.resolve(packageRoot, "../..");
 
@@ -56,8 +52,5 @@ export function loadEnv() {
       continue;
     }
     parseEnvFile(filePath);
-    if (process.env.DATABASE_URL) {
-      break;
-    }
   }
 }

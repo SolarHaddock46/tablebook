@@ -34,7 +34,7 @@ type AuthContextValue = {
   user: AuthUser | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ email_verified: boolean }>;
   register: (
     email: string,
     password: string,
@@ -97,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async login(email, password) {
         const result = await api.login({ email, password });
         await persistSession(result.accessToken, result.user);
+        return { email_verified: result.user.email_verified };
       },
       async register(email, password, role, displayName) {
         const result = await api.register({

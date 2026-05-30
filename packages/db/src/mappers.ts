@@ -1,4 +1,5 @@
 import type {
+  AuthUser,
   Booking,
   BookingStatus,
   Locale,
@@ -17,8 +18,25 @@ export function mapUser(row: UserRow): User {
     email: row.email,
     role: row.role as UserRole,
     display_name: row.displayName,
+    full_name: row.fullName,
+    phone: row.phone,
+    email_verified: row.emailVerified,
     locale: row.locale as Locale,
     created_at: row.createdAt.toISOString()
+  };
+}
+
+export function mapAuthUser(row: UserRow): AuthUser {
+  const user = mapUser(row);
+  return {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    display_name: user.display_name,
+    full_name: user.full_name,
+    phone: user.phone,
+    email_verified: user.email_verified,
+    locale: user.locale
   };
 }
 

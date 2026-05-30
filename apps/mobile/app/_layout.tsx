@@ -13,19 +13,25 @@ function RootNavigator() {
       return;
     }
 
-    const inAuth = segments[0] === "(auth)";
+    const rootSegment = segments[0] as string | undefined;
+    const inAuth = rootSegment === "(auth)";
+    const authSegment = segments[1] as string | undefined;
+    const inPublicAuthFlow =
+      rootSegment === "verify-email" ||
+      rootSegment === "reset-password" ||
+      (inAuth && authSegment === "reset-password");
 
-    if (!user && !inAuth) {
+    if (!user && !inAuth && !inPublicAuthFlow) {
       router.replace("/(auth)/login");
       return;
     }
 
-    if (user?.role === "restaurant_owner" && segments[0] !== "(owner)" && !inAuth) {
+    if (user?.role === "restaurant_owner" && rootSegment !== "(owner)" && !inAuth && !inPublicAuthFlow) {
       router.replace("/(owner)/bookings");
       return;
     }
 
-    if (user?.role === "user" && segments[0] === "(owner)") {
+    if (user?.role === "user" && rootSegment === "(owner)") {
       router.replace("/(tabs)/search");
     }
   }, [loading, router, segments, user]);

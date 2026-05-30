@@ -1,4 +1,4 @@
-import { Link, useRouter } from "expo-router";
+import { Link, useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { Screen, ui } from "@/components/ui";
@@ -19,11 +19,7 @@ export default function SignupScreen() {
     setError(null);
     try {
       await register(email.trim(), password, role, displayName.trim() || undefined);
-      if (role === "restaurant_owner") {
-        router.replace("/(owner)/onboarding");
-      } else {
-        router.replace("/(tabs)/search");
-      }
+      router.replace("/(auth)/verify-email" as Href);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
     } finally {

@@ -1,8 +1,9 @@
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
-import { getDb, mapUser, users } from "@tablebook/db";
+import { getDb, mapAuthUser, users } from "@tablebook/db";
 import { RegisterSchema } from "@tablebook/shared";
 import { jsonError } from "@/lib/auth-helpers";
+import { issueEmailVerification } from "@/lib/email-verification";
 import { signAccessToken } from "@/lib/jwt";
 
 export async function POST(request: Request) {
@@ -26,11 +27,13 @@ export async function POST(request: Request) {
         email,
         passwordHash,
         role: parsed.data.role,
-        displayName: parsed.data.display_name ?? null
+        displayName: parsed.data.display_name ?? null,
+        emailVerified: false
       })
       .returning();
 
-    const user = mapUser(row);
+    await issueEmailVerification(row);
+    const user = mapAuthUser(row);
     const accessToken = await signAccessToken(user);
     return Response.json({ user, accessToken }, { status: 201 });
   } catch (error) {

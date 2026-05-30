@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { getDb, mapUser, users } from "@tablebook/db";
+import { getDb, mapAuthUser, users } from "@tablebook/db";
 import type { AuthUser } from "@tablebook/shared";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -30,13 +30,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        const user = mapUser(row);
+        const user = mapAuthUser(row);
         return {
           id: user.id,
           email: user.email,
           role: user.role,
           name: user.display_name,
-          locale: user.locale
+          locale: user.locale,
+          display_name: user.display_name,
+          full_name: user.full_name,
+          phone: user.phone,
+          email_verified: user.email_verified
         };
       }
     })
@@ -46,15 +50,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     jwt({ token, user }) {
       if (user) {
-        token.role = user.role;
-        token.locale = user.locale;
+        const authUser = user as AuthUser & { id: string };
+        token.role = authUser.role;
+        token.locale = authUser.locale;
+        token.display_name = authUser.display_name;
+        token.full_name = authUser.full_name;
+        token.phone = authUser.phone;
+        token.email_verified = authUser.email_verified;
       }
       return token;
     },
     session({ session, token }) {
       if (session.user) {
-        session.user.id = token.sub ?? "";
-        (session.user as AuthUser & { id: string }).role = token.role as AuthUser["role"];
+        const authUser = session.user as unknown as AuthUser & { id: string };
+        authUser.id = token.sub ?? "";
+        authUser.role = token.role as AuthUser["role"];
+        authUser.display_name = (token.display_name as string | null | undefined) ?? null;
+        authUser.full_name = (token.full_name as string | null | undefined) ?? null;
+        authUser.phone = (token.phone as string | null | undefined) ?? null;
+        authUser.email_verified = Boolean(token.email_verified);
+        authUser.locale = (token.locale as AuthUser["locale"] | undefined) ?? "ru";
       }
       return session;
     }

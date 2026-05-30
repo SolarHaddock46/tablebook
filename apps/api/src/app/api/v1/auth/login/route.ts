@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
-import { getDb, mapUser, users } from "@tablebook/db";
+import { getDb, mapAuthUser, users } from "@tablebook/db";
 import { LoginSchema } from "@tablebook/shared";
 import { jsonError } from "@/lib/auth-helpers";
 import { signAccessToken } from "@/lib/jwt";
@@ -24,9 +24,9 @@ export async function POST(request: Request) {
       return Response.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    const user = mapUser(row);
+    const user = mapAuthUser(row);
     const accessToken = await signAccessToken(user);
-    return Response.json({ user, accessToken });
+    return Response.json({ user, accessToken, email_verified: user.email_verified });
   } catch (error) {
     return jsonError(error);
   }

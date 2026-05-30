@@ -76,7 +76,24 @@ const dictionary = {
     ownerDashboard: "Кабинет ресторана",
     onboard: "Создать ресторан",
     tables: "Столики",
-    save: "Сохранить"
+    save: "Сохранить",
+    verifyEmailTitle: "Подтвердите email",
+    verifyEmailHint: "Мы отправили письмо на {email}. Перейдите по ссылке в письме, чтобы подтвердить аккаунт.",
+    verifyEmailResend: "Отправить письмо снова",
+    verifyEmailResent: "Письмо отправлено",
+    verifyEmailSuccess: "Email подтверждён",
+    verifyEmailFailed: "Ссылка недействительна или истекла",
+    verifyEmailContinue: "Продолжить",
+    emailNotVerifiedWarning: "Email не подтверждён. Проверьте почту или отправьте письмо снова.",
+    forgotPassword: "Забыли пароль?",
+    forgotPasswordTitle: "Сброс пароля",
+    forgotPasswordHint: "Введите email — мы отправим ссылку для сброса пароля.",
+    forgotPasswordSent: "Если аккаунт существует, мы отправили письмо со ссылкой для сброса.",
+    resetPasswordTitle: "Новый пароль",
+    resetPasswordHint: "Введите новый пароль для вашего аккаунта.",
+    resetPasswordSuccess: "Пароль обновлён. Теперь можно войти.",
+    newPassword: "Новый пароль",
+    send: "Отправить"
   },
   en: {
     title: "TableBook",
@@ -153,7 +170,24 @@ const dictionary = {
     ownerDashboard: "Restaurant dashboard",
     onboard: "Create restaurant",
     tables: "Tables",
-    save: "Save"
+    save: "Save",
+    verifyEmailTitle: "Confirm your email",
+    verifyEmailHint: "We sent an email to {email}. Open the link in the message to confirm your account.",
+    verifyEmailResend: "Resend email",
+    verifyEmailResent: "Email sent",
+    verifyEmailSuccess: "Email confirmed",
+    verifyEmailFailed: "Link is invalid or expired",
+    verifyEmailContinue: "Continue",
+    emailNotVerifiedWarning: "Email is not verified. Check your inbox or resend the confirmation.",
+    forgotPassword: "Forgot password?",
+    forgotPasswordTitle: "Reset password",
+    forgotPasswordHint: "Enter your email and we will send a reset link.",
+    forgotPasswordSent: "If an account exists, we sent a password reset email.",
+    resetPasswordTitle: "New password",
+    resetPasswordHint: "Enter a new password for your account.",
+    resetPasswordSuccess: "Password updated. You can sign in now.",
+    newPassword: "New password",
+    send: "Send"
   }
 } as const;
 

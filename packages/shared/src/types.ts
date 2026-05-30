@@ -83,6 +83,9 @@ export type User = {
   email: string;
   role: UserRole;
   display_name: string | null;
+  full_name: string | null;
+  phone: string | null;
+  email_verified: boolean;
   locale: Locale;
   created_at: string;
 };
@@ -102,5 +105,8 @@ export type AuthUser = {
   email: string;
   role: UserRole;
   display_name: string | null;
+  full_name: string | null;
+  phone: string | null;
+  email_verified: boolean;
   locale: Locale;
 };

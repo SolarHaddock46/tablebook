@@ -14,6 +14,9 @@ export async function signAccessToken(user: AuthUser) {
     role: user.role,
     email: user.email,
     display_name: user.display_name,
+    full_name: user.full_name,
+    phone: user.phone,
+    email_verified: user.email_verified,
     locale: user.locale
   })
     .setProtectedHeader({ alg: "HS256" })
@@ -34,6 +37,9 @@ export async function verifyAccessToken(token: string): Promise<AuthUser | null>
       email: String(payload.email ?? ""),
       role: payload.role as AuthUser["role"],
       display_name: (payload.display_name as string | null | undefined) ?? null,
+      full_name: (payload.full_name as string | null | undefined) ?? null,
+      phone: (payload.phone as string | null | undefined) ?? null,
+      email_verified: Boolean(payload.email_verified),
       locale: (payload.locale as AuthUser["locale"] | undefined) ?? "ru"
     };
   } catch {

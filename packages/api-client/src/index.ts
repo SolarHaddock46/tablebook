@@ -65,7 +65,34 @@ export class TableBookClient {
   }
 
   login(input: { email: string; password: string }) {
-    return this.request<{ user: AuthUser; accessToken: string }>("/api/v1/auth/login", {
+    return this.request<{ user: AuthUser; accessToken: string; email_verified?: boolean }>(
+      "/api/v1/auth/login",
+      {
+        method: "POST",
+        body: JSON.stringify(input)
+      }
+    );
+  }
+
+  sendVerificationEmail() {
+    return this.request<{ ok: true; message: string }>("/api/v1/auth/verify-email", {
+      method: "POST"
+    });
+  }
+
+  confirmEmail(token: string) {
+    return this.request<{ ok: true; user: AuthUser }>(`/api/v1/auth/verify-email/${token}`);
+  }
+
+  forgotPassword(input: { email: string }) {
+    return this.request<{ ok: true; message: string }>("/api/v1/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify(input)
+    });
+  }
+
+  resetPassword(input: { token: string; password: string }) {
+    return this.request<{ ok: true; user: AuthUser }>("/api/v1/auth/reset-password", {
       method: "POST",
       body: JSON.stringify(input)
     });
