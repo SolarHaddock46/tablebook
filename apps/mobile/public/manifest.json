@@ -1,11 +1,11 @@
 {
-  "name": "TableBook",
-  "short_name": "TableBook",
+  "name": "ЗаСтолом",
+  "short_name": "ЗаСтолом",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#06b6d4",
-  "description": "Restaurant table booking",
+  "description": "Бронирование столиков в ресторанах",
   "icons": [
     {
       "src": "/icon-192.png",

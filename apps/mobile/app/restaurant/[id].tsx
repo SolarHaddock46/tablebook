@@ -9,18 +9,16 @@ import { api } from "@/lib/api";
 import {
   canUserReviewRestaurant,
   getRestaurantName,
-  t,
-  type Locale,
   type Review,
   type Restaurant
 } from "@tablebook/shared";
+import { useLocale } from "@/lib/use-locale";
 
 export default function RestaurantScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuth();
-  const locale: Locale = "ru";
-  const dict = t(locale);
+  const { locale, dict } = useLocale();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [galleryPhotos, setGalleryPhotos] = useState<Awaited<ReturnType<typeof api.getRestaurantPhotos>>["photos"]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -68,7 +66,7 @@ export default function RestaurantScreen() {
     if (!id || !eligibility?.allowed) return;
     const parsedRating = Number(rating);
     if (!Number.isFinite(parsedRating) || parsedRating < 1 || parsedRating > 5) {
-      setError("Укажите оценку от 1 до 5");
+      setError(dict.reviewRatingRequired);
       return;
     }
 
@@ -89,7 +87,7 @@ export default function RestaurantScreen() {
       if (err instanceof ApiError && err.status === 403) {
         setError(dict.reviewNeedVisit);
       } else {
-        setError(err instanceof Error ? err.message : "Не удалось отправить отзыв");
+        setError(err instanceof Error ? err.message : dict.genericError);
       }
     } finally {
       setSubmitting(false);
@@ -136,7 +134,7 @@ export default function RestaurantScreen() {
           data={reviews}
           keyExtractor={(item) => item.id}
           ItemSeparatorComponent={ListSeparator}
-          renderItem={({ item }) => <ReviewCard review={item} />}
+          renderItem={({ item }) => <ReviewCard review={item} guestLabel={dict.guest} />}
         />
       )}
 
@@ -176,11 +174,11 @@ export default function RestaurantScreen() {
   );
 }
 
-function ReviewCard({ review }: { review: Review }) {
+function ReviewCard({ review, guestLabel }: { review: Review; guestLabel: string }) {
   return (
     <Pressable style={ui.card}>
       <Text style={ui.value}>★ {review.rating}</Text>
-      <Text style={ui.muted}>{review.author_name ?? "Гость"}</Text>
+      <Text style={ui.muted}>{review.author_name ?? guestLabel}</Text>
       {review.body ? <Text style={ui.value}>{review.body}</Text> : null}
     </Pressable>
   );

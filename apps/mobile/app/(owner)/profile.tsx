@@ -2,14 +2,17 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, Text, TextInput } from "react-native";
 import { RestaurantPhotoGallery } from "@/components/restaurant-photo-gallery";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { Screen, ui } from "@/components/ui";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
+import { useLocale } from "@/lib/use-locale";
 import type { Restaurant, RestaurantPhoto } from "@tablebook/shared";
 
 export default function OwnerProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { dict } = useLocale();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [photos, setPhotos] = useState<RestaurantPhoto[]>([]);
   const [nameRu, setNameRu] = useState("");
@@ -41,29 +44,26 @@ export default function OwnerProfileScreen() {
   }
 
   return (
-    <Screen title="Профиль ресторана" scrollable>
+    <Screen title={dict.profile} scrollable>
       {user ? <Text style={ui.muted}>{user.email}</Text> : null}
+      <LanguageSwitcher />
       {error ? <Text style={{ color: "#f87171" }}>{error}</Text> : null}
       <TextInput
         style={ui.input}
-        placeholder="Название RU"
+        placeholder={dict.restaurantNameRu}
         placeholderTextColor="#64748b"
         value={nameRu}
         onChangeText={setNameRu}
       />
       {restaurant ? <Text style={ui.muted}>★ {restaurant.rating}</Text> : null}
       {restaurant ? (
-        <RestaurantPhotoGallery
-          restaurantId={restaurant.id}
-          photos={photos}
-          onPhotosChange={setPhotos}
-        />
+        <RestaurantPhotoGallery restaurantId={restaurant.id} photos={photos} onPhotosChange={setPhotos} />
       ) : null}
       <Pressable style={ui.button} onPress={save}>
-        <Text style={ui.buttonText}>Сохранить</Text>
+        <Text style={ui.buttonText}>{dict.save}</Text>
       </Pressable>
       <Pressable style={[ui.button, { backgroundColor: "#334155" }]} onPress={handleLogout}>
-        <Text style={[ui.buttonText, { color: "#f8fafc" }]}>Выйти</Text>
+        <Text style={[ui.buttonText, { color: "#f8fafc" }]}>{dict.logout}</Text>
       </Pressable>
     </Screen>
   );

@@ -2,8 +2,10 @@ import { Tabs, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { TabBarIcon } from "@/components/TabBarIcon";
 import { api } from "@/lib/api";
+import { useLocale } from "@/lib/use-locale";
 
 export default function OwnerLayout() {
+  const { dict } = useLocale();
   const [hasRestaurant, setHasRestaurant] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
 
@@ -25,7 +27,8 @@ export default function OwnerLayout() {
 
   useFocusEffect(refreshRestaurantState);
 
-  const bookingsTitle = pendingCount > 0 ? `Брони (${pendingCount})` : "Брони";
+  const bookingsTitle =
+    pendingCount > 0 ? `${dict.ownerBookingsTab} (${pendingCount})` : dict.ownerBookingsTab;
 
   return (
     <Tabs
@@ -39,7 +42,7 @@ export default function OwnerLayout() {
       <Tabs.Screen
         name="onboarding"
         options={{
-          title: "Старт",
+          title: dict.ownerStartTab,
           href: hasRestaurant ? null : undefined,
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon activeName="rocket" inactiveName="rocket-outline" color={color} focused={focused} />
@@ -49,7 +52,7 @@ export default function OwnerLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Профиль",
+          title: dict.profile,
           href: hasRestaurant ? undefined : null,
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon activeName="storefront" inactiveName="storefront-outline" color={color} focused={focused} />
@@ -59,7 +62,7 @@ export default function OwnerLayout() {
       <Tabs.Screen
         name="tables"
         options={{
-          title: "Столики",
+          title: dict.tables,
           href: hasRestaurant ? undefined : null,
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon activeName="grid" inactiveName="grid-outline" color={color} focused={focused} />
@@ -79,7 +82,7 @@ export default function OwnerLayout() {
       <Tabs.Screen
         name="reviews"
         options={{
-          title: "Отзывы",
+          title: dict.reviews,
           href: hasRestaurant ? undefined : null,
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon activeName="star" inactiveName="star-outline" color={color} focused={focused} />
@@ -89,7 +92,7 @@ export default function OwnerLayout() {
       <Tabs.Screen
         name="subscription"
         options={{
-          title: "Подписка",
+          title: dict.subscription,
           href: hasRestaurant ? undefined : null,
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon activeName="diamond" inactiveName="diamond-outline" color={color} focused={focused} />

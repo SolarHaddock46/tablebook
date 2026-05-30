@@ -3,16 +3,19 @@ import { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { ListSeparator, Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useLocale } from "@/lib/use-locale";
 import type { RestaurantBlacklistEntry } from "@tablebook/shared";
 
 export default function OwnerBlacklistScreen() {
   const router = useRouter();
+  const { locale, dict } = useLocale();
   const [entries, setEntries] = useState<RestaurantBlacklistEntry[]>([]);
   const [guestPhone, setGuestPhone] = useState("");
   const [guestName, setGuestName] = useState("");
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const dateLocale = locale === "ru" ? "ru-RU" : "en-US";
 
   const loadEntries = useCallback(() => {
     setLoading(true);
@@ -22,9 +25,9 @@ export default function OwnerBlacklistScreen() {
         setEntries(response.entries);
         setError(null);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : "Ошибка загрузки"))
+      .catch((err) => setError(err instanceof Error ? err.message : dict.loadError))
       .finally(() => setLoading(false));
-  }, []);
+  }, [dict.loadError]);
 
   useEffect(() => {
     loadEntries();
@@ -32,7 +35,7 @@ export default function OwnerBlacklistScreen() {
 
   async function handleAdd() {
     if (!guestPhone.trim()) {
-      setError("Укажите телефон");
+      setError(dict.blacklistPhoneRequired);
       return;
     }
     try {
@@ -47,7 +50,7 @@ export default function OwnerBlacklistScreen() {
       setError(null);
       loadEntries();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Не удалось добавить");
+      setError(err instanceof Error ? err.message : dict.blacklistAddFailed);
     }
   }
 
@@ -57,21 +60,19 @@ export default function OwnerBlacklistScreen() {
         <Text style={ui.value}>{item.guest_phone}</Text>
         {item.guest_name ? <Text style={ui.muted}>{item.guest_name}</Text> : null}
         {item.reason ? <Text style={ui.muted}>{item.reason}</Text> : null}
-        <Text style={ui.muted}>
-          {new Date(item.created_at).toLocaleDateString("ru-RU")}
-        </Text>
+        <Text style={ui.muted}>{new Date(item.created_at).toLocaleDateString(dateLocale)}</Text>
       </View>
     );
   }
 
   return (
-    <Screen title="Чёрный список" scrollable>
+    <Screen title={dict.blacklist} scrollable>
       <Pressable onPress={() => router.back()}>
-        <Text style={ui.link}>← Назад</Text>
+        <Text style={ui.link}>← {dict.back}</Text>
       </Pressable>
-      {loading ? <Text style={ui.muted}>Загрузка...</Text> : null}
+      {loading ? <Text style={ui.muted}>{dict.loading}</Text> : null}
       {error ? <Text style={{ color: "#f87171" }}>{error}</Text> : null}
-      <Text style={ui.label}>Телефон</Text>
+      <Text style={ui.label}>{dict.blacklistPhoneLabel}</Text>
       <TextInput
         style={ui.input}
         value={guestPhone}
@@ -80,14 +81,14 @@ export default function OwnerBlacklistScreen() {
         placeholder="+7..."
         placeholderTextColor="#64748b"
       />
-      <Text style={ui.label}>Имя (необязательно)</Text>
+      <Text style={ui.label}>{dict.blacklistNameOptional}</Text>
       <TextInput
         style={ui.input}
         value={guestName}
         onChangeText={setGuestName}
         placeholderTextColor="#64748b"
       />
-      <Text style={ui.label}>Причина (необязательно)</Text>
+      <Text style={ui.label}>{dict.blacklistReasonOptional}</Text>
       <TextInput
         style={ui.input}
         value={reason}
@@ -95,9 +96,11 @@ export default function OwnerBlacklistScreen() {
         placeholderTextColor="#64748b"
       />
       <Pressable style={ui.button} onPress={handleAdd}>
-        <Text style={ui.buttonText}>Добавить</Text>
+        <Text style={ui.buttonText}>{dict.add}</Text>
       </Pressable>
-      <Text style={[ui.value, { marginTop: 8 }]}>Записи ({entries.length})</Text>
+      <Text style={[ui.value, { marginTop: 8 }]}>
+        {dict.blacklistEntries.replace("{count}", String(entries.length))}
+      </Text>
       <FlatList
         scrollEnabled={false}
         data={entries}

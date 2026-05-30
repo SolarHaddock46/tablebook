@@ -4,6 +4,7 @@ import { Pressable, Text } from "react-native";
 import { Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
 import { ApiError } from "@tablebook/api-client";
+import { useLocale } from "@/lib/use-locale";
 import {
   canCancelBooking,
   getBookingStatusLabel,
@@ -18,8 +19,7 @@ import {
 export default function BookingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const locale: Locale = "ru";
-  const dict = t(locale);
+  const { locale, dict } = useLocale();
   const [booking, setBooking] = useState<(Booking & { restaurant?: Restaurant }) | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export default function BookingDetailScreen() {
         setError(dict.cancelWindowExpired);
         return;
       }
-      setError(caught instanceof Error ? caught.message : "Не удалось отменить бронь");
+      setError(caught instanceof Error ? caught.message : dict.cancelBookingFailed);
     }
   }
 
@@ -72,20 +72,22 @@ export default function BookingDetailScreen() {
   if (!booking) {
     return (
       <Screen>
-        <Text style={ui.muted}>Загрузка...</Text>
+        <Text style={ui.muted}>{dict.loading}</Text>
       </Screen>
     );
   }
 
   return (
-    <Screen title="Детали брони" scrollable>
+    <Screen title={dict.bookingDetails} scrollable>
       {booking.restaurant ? (
         <Text style={ui.value}>{getRestaurantName(booking.restaurant, locale)}</Text>
       ) : null}
       <Text style={ui.muted}>
         {booking.date} · {booking.time}
       </Text>
-      <Text style={ui.muted}>Статус: {getBookingStatusLabel(booking.status, locale)}</Text>
+      <Text style={ui.muted}>
+        {dict.status}: {getBookingStatusLabel(booking.status, locale)}
+      </Text>
       {booking.status === "rejected" && booking.rejection_reason ? (
         <Text style={ui.muted}>{booking.rejection_reason}</Text>
       ) : null}

@@ -4,6 +4,7 @@ import { Pressable, Text } from "react-native";
 import { Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useLocale } from "@/lib/use-locale";
 
 const confirmedTokens = new Set<string>();
 
@@ -11,6 +12,7 @@ export default function VerifyEmailTokenScreen() {
   const router = useRouter();
   const { token } = useLocalSearchParams<{ token?: string }>();
   const { refreshMe, user } = useAuth();
+  const { dict } = useLocale();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [error, setError] = useState<string | null>(null);
   const startedRef = useRef(false);
@@ -19,7 +21,7 @@ export default function VerifyEmailTokenScreen() {
     async function confirm() {
       if (!token) {
         setStatus("error");
-        setError("Ссылка недействительна");
+        setError(dict.invalidLink);
         return;
       }
 
@@ -40,11 +42,11 @@ export default function VerifyEmailTokenScreen() {
         setStatus("success");
       } catch (err) {
         setStatus("error");
-        setError(err instanceof Error ? err.message : "Ссылка недействительна или истекла");
+        setError(err instanceof Error ? err.message : dict.verifyEmailFailed);
       }
     }
     confirm();
-  }, [refreshMe, token]);
+  }, [dict.invalidLink, dict.verifyEmailFailed, refreshMe, token]);
 
   function navigateNext() {
     if (user) {
@@ -60,28 +62,28 @@ export default function VerifyEmailTokenScreen() {
 
   if (status === "loading") {
     return (
-      <Screen title="Подтверждение email">
-        <Text style={ui.muted}>Подтверждаем ваш email...</Text>
+      <Screen title={dict.verifyEmailConfirmTitle}>
+        <Text style={ui.muted}>{dict.verifyEmailConfirming}</Text>
       </Screen>
     );
   }
 
   if (status === "error") {
     return (
-      <Screen title="Подтверждение email">
+      <Screen title={dict.verifyEmailConfirmTitle}>
         <Text style={{ color: "#f87171" }}>{error}</Text>
         <Pressable style={ui.button} onPress={() => router.replace("/(auth)/verify-email" as Href)}>
-          <Text style={ui.buttonText}>Отправить письмо снова</Text>
+          <Text style={ui.buttonText}>{dict.verifyEmailResend}</Text>
         </Pressable>
       </Screen>
     );
   }
 
   return (
-    <Screen title="Email подтверждён">
-      <Text style={{ color: "#4ade80" }}>Email успешно подтверждён.</Text>
+    <Screen title={dict.verifyEmailSuccess}>
+      <Text style={{ color: "#4ade80" }}>{dict.verifyEmailConfirmedMessage}</Text>
       <Pressable style={ui.button} onPress={navigateNext}>
-        <Text style={ui.buttonText}>Продолжить</Text>
+        <Text style={ui.buttonText}>{dict.verifyEmailContinue}</Text>
       </Pressable>
     </Screen>
   );

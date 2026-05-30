@@ -8,10 +8,9 @@ import {
   getPriceLabel,
   getRestaurantDistrict,
   getRestaurantName,
-  t,
-  type Locale,
   type RestaurantSearchHit
 } from "@tablebook/shared";
+import { useLocale } from "@/lib/use-locale";
 
 export default function ResultsScreen() {
   const params = useLocalSearchParams<{
@@ -25,8 +24,7 @@ export default function ResultsScreen() {
     from_recommendations?: string;
   }>();
   const router = useRouter();
-  const locale: Locale = "ru";
-  const dict = t(locale);
+  const { locale, dict } = useLocale();
   const fromRecommendations = params.from_recommendations === "1";
   const [items, setItems] = useState<RestaurantSearchHit[]>([]);
   const [isFallback, setIsFallback] = useState(false);
@@ -103,7 +101,7 @@ export default function ResultsScreen() {
         ItemSeparatorComponent={ListSeparator}
         ListEmptyComponent={
           <Text style={ui.muted}>
-            {loading ? "Загрузка..." : showSearchMessage ? dict.noDataHint : dict.noData}
+            {loading ? dict.loading : showSearchMessage ? dict.noDataHint : dict.noData}
           </Text>
         }
         renderItem={({ item }) => (

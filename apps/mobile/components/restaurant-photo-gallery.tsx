@@ -3,19 +3,20 @@ import { Image } from "expo-image";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import type { RestaurantPhoto } from "@tablebook/shared";
-import { t, type Locale } from "@tablebook/shared";
+import { t } from "@tablebook/shared";
 import { api } from "@/lib/api";
 import { uploadRestaurantPhoto } from "@/lib/upload-restaurant-photo";
+import { useLocale } from "@/lib/use-locale";
 import { ui } from "./ui";
 
 type Props = {
   restaurantId: string;
   photos: RestaurantPhoto[];
   onPhotosChange: (photos: RestaurantPhoto[]) => void;
-  locale?: Locale;
 };
 
-export function RestaurantPhotoGallery({ restaurantId, photos, onPhotosChange, locale = "ru" }: Props) {
+export function RestaurantPhotoGallery({ restaurantId, photos, onPhotosChange }: Props) {
+  const { locale } = useLocale();
   const dict = t(locale);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);

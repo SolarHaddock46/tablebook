@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useLocale } from "@/lib/use-locale";
 import {
   formatPlanPrice,
   isPremiumSubscription,
@@ -15,7 +16,7 @@ import {
 
 export default function OwnerSubscriptionScreen() {
   const router = useRouter();
-  const locale = Constants.Locale;
+  const { locale, dict } = useLocale();
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [subscription, setSubscription] = useState<RestaurantSubscription | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -29,9 +30,9 @@ export default function OwnerSubscriptionScreen() {
         setSubscription(statusResponse.subscription);
         setError(null);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : "Ошибка загрузки"))
+      .catch((err) => setError(err instanceof Error ? err.message : dict.loadError))
       .finally(() => setLoading(false));
-  }, []);
+  }, [dict.loadError]);
 
   useEffect(() => {
     loadData();
@@ -42,7 +43,7 @@ export default function OwnerSubscriptionScreen() {
       const response = await api.cancelSubscription();
       setSubscription(response.subscription);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Не удалось отменить подписку");
+      setError(err instanceof Error ? err.message : dict.subscriptionCancelFailed);
     }
   }
 
@@ -60,13 +61,13 @@ export default function OwnerSubscriptionScreen() {
           </Text>
         ))}
         {isCurrent ? (
-          <Text style={{ color: "#67e8f9", marginTop: 8 }}>Текущий тариф</Text>
+          <Text style={{ color: "#67e8f9", marginTop: 8 }}>{dict.subscriptionCurrentPlan}</Text>
         ) : isPremium ? (
           <Pressable
             style={[ui.button, { marginTop: 8 }]}
             onPress={() => router.push(`/subscription-checkout?planId=${plan.id}`)}
           >
-            <Text style={ui.buttonText}>Перейти к оплате</Text>
+            <Text style={ui.buttonText}>{dict.subscriptionGoToCheckout}</Text>
           </Pressable>
         ) : null}
       </View>
@@ -75,43 +76,45 @@ export default function OwnerSubscriptionScreen() {
 
   function renderStatus() {
     if (!subscription) {
-      return <Text style={ui.muted}>Подписка не найдена</Text>;
+      return <Text style={ui.muted}>{dict.subscriptionNotFound}</Text>;
     }
 
     const active = isSubscriptionActive(subscription);
     const premium = isPremiumSubscription(subscription);
+    const dateLocale = locale === "ru" ? "ru-RU" : "en-US";
 
     return (
       <View style={ui.card}>
-        <Text style={ui.label}>Статус</Text>
+        <Text style={ui.label}>{dict.status}</Text>
         <Text style={ui.value}>{subscriptionStatusLabel(subscription.status, locale)}</Text>
         <Text style={ui.muted}>
-          Тариф: {planTypeLabel(subscription.plan_name, locale)}
+          {dict.subscriptionPlanLabel}: {planTypeLabel(subscription.plan_name, locale)}
         </Text>
         {subscription.expires_at ? (
           <Text style={ui.muted}>
-            Действует до: {new Date(subscription.expires_at).toLocaleDateString("ru-RU")}
+            {dict.subscriptionExpiresAt}:{" "}
+            {new Date(subscription.expires_at).toLocaleDateString(dateLocale)}
           </Text>
         ) : null}
         {subscription.bookings_remaining !== null ? (
           <Text style={ui.muted}>
-            Осталось броней в этом месяце: {subscription.bookings_remaining}
+            {dict.subscriptionBookingsRemaining}: {subscription.bookings_remaining}
           </Text>
         ) : (
-          <Text style={ui.muted}>Бронирования: без ограничений</Text>
+          <Text style={ui.muted}>{dict.subscriptionUnlimitedBookings}</Text>
         )}
         {active && subscription.status !== "cancelled" ? (
           <Pressable style={[ui.button, { marginTop: 8, backgroundColor: "#475569" }]} onPress={handleCancel}>
-            <Text style={ui.buttonText}>Отменить подписку</Text>
+            <Text style={ui.buttonText}>{dict.subscriptionCancel}</Text>
           </Pressable>
         ) : null}
         {premium ? (
           <View style={{ gap: 8, marginTop: 8 }}>
             <Pressable onPress={() => router.push("/analytics")}>
-              <Text style={ui.link}>Аналитика →</Text>
+              <Text style={ui.link}>{dict.analyticsLink}</Text>
             </Pressable>
             <Pressable onPress={() => router.push("/blacklist")}>
-              <Text style={ui.link}>Чёрный список →</Text>
+              <Text style={ui.link}>{dict.blacklistLink}</Text>
             </Pressable>
           </View>
         ) : null}
@@ -120,16 +123,12 @@ export default function OwnerSubscriptionScreen() {
   }
 
   return (
-    <Screen title="Подписка" scrollable>
-      {loading ? <Text style={ui.muted}>Загрузка...</Text> : null}
+    <Screen title={dict.subscription} scrollable>
+      {loading ? <Text style={ui.muted}>{dict.loading}</Text> : null}
       {error ? <Text style={{ color: "#f87171" }}>{error}</Text> : null}
       {renderStatus()}
-      <Text style={[ui.value, { marginTop: 8 }]}>Тарифы</Text>
+      <Text style={[ui.value, { marginTop: 8 }]}>{dict.plansTitle}</Text>
       {plans.map(renderPlanCard)}
     </Screen>
   );
-}
-
-enum Constants {
-  Locale = "ru"
 }

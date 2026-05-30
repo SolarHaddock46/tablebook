@@ -3,10 +3,12 @@ import { FlatList, Pressable, Text, TextInput } from "react-native";
 import { useRouter } from "expo-router";
 import { ListSeparator, Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useLocale } from "@/lib/use-locale";
 import type { Restaurant } from "@tablebook/shared";
 
 export default function OwnerTablesScreen() {
   const router = useRouter();
+  const { dict } = useLocale();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [existingTables, setExistingTables] = useState<Restaurant["tables"]>([]);
   const [zoneRu, setZoneRu] = useState("Зал");
@@ -36,7 +38,7 @@ export default function OwnerTablesScreen() {
     ];
     const updated = await api.updateTables(restaurant.id, nextTables);
     setExistingTables(updated.tables);
-    setMessage("Столики сохранены");
+    setMessage(dict.tablesSaved);
     setZoneRu("Зал");
     setZoneEn("Main");
     setCapacity("4");
@@ -44,8 +46,8 @@ export default function OwnerTablesScreen() {
   }
 
   return (
-    <Screen title="Столики" scrollable>
-      {!restaurant ? <Text style={ui.muted}>Сначала создайте ресторан</Text> : null}
+    <Screen title={dict.tables} scrollable>
+      {!restaurant ? <Text style={ui.muted}>{dict.createRestaurantFirst}</Text> : null}
       {existingTables.length > 0 ? (
         <FlatList
           scrollEnabled={false}
@@ -58,7 +60,7 @@ export default function OwnerTablesScreen() {
                 {item.zone_ru} ({item.zone_en})
               </Text>
               <Text style={ui.muted}>
-                ID: {item.id} · {item.capacity} гостей
+                ID: {item.id} · {item.capacity} {dict.forGuests}
               </Text>
             </Pressable>
           )}
@@ -66,21 +68,21 @@ export default function OwnerTablesScreen() {
       ) : null}
       <TextInput
         style={ui.input}
-        placeholder="Зона"
+        placeholder={dict.tableZone}
         placeholderTextColor="#64748b"
         value={zoneRu}
         onChangeText={setZoneRu}
       />
       <TextInput
         style={ui.input}
-        placeholder="Zone EN"
+        placeholder={dict.tableZoneEn}
         placeholderTextColor="#64748b"
         value={zoneEn}
         onChangeText={setZoneEn}
       />
       <TextInput
         style={ui.input}
-        placeholder="Вместимость"
+        placeholder={dict.tableCapacity}
         placeholderTextColor="#64748b"
         value={capacity}
         onChangeText={setCapacity}
@@ -88,7 +90,7 @@ export default function OwnerTablesScreen() {
       />
       {message ? <Text style={ui.link}>{message}</Text> : null}
       <Pressable style={ui.button} onPress={saveTables} disabled={!restaurant}>
-        <Text style={ui.buttonText}>Добавить столик</Text>
+        <Text style={ui.buttonText}>{dict.addTable}</Text>
       </Pressable>
     </Screen>
   );

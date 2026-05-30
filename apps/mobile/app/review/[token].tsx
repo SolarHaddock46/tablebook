@@ -4,6 +4,7 @@ import { Pressable, Text } from "react-native";
 import { Screen, ui } from "@/components/ui";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
+import { useLocale } from "@/lib/use-locale";
 import {
   isSafeInAppRedirect,
   loginRedirectHref,
@@ -14,6 +15,7 @@ import {
 export default function ReviewReminderScreen() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const { dict } = useLocale();
   const params = useLocalSearchParams<{ token?: string | string[] }>();
   const token = normalizeRouteToken(params.token);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
@@ -28,7 +30,7 @@ export default function ReviewReminderScreen() {
     async function redeem() {
       if (!token) {
         setStatus("error");
-        setError("Ссылка недействительна");
+        setError(dict.invalidLink);
         return;
       }
 
@@ -47,35 +49,35 @@ export default function ReviewReminderScreen() {
         router.replace(loginRedirectHref(result.restaurant_id));
       } catch (err) {
         setStatus("error");
-        setError(err instanceof Error ? err.message : "Ссылка недействительна или истекла");
+        setError(err instanceof Error ? err.message : dict.verifyEmailFailed);
       }
     }
 
     redeem();
-  }, [authLoading, router, token, user]);
+  }, [authLoading, dict.invalidLink, dict.verifyEmailFailed, router, token, user]);
 
   if (status === "loading") {
     return (
-      <Screen title="Отзыв">
-        <Text style={ui.muted}>Открываем страницу ресторана...</Text>
+      <Screen title={dict.reviewTitle}>
+        <Text style={ui.muted}>{dict.reviewOpening}</Text>
       </Screen>
     );
   }
 
   if (status === "error") {
     return (
-      <Screen title="Отзыв">
+      <Screen title={dict.reviewTitle}>
         <Text style={{ color: "#f87171" }}>{error}</Text>
         <Pressable style={ui.button} onPress={() => router.replace("/(tabs)/search" as Href)}>
-          <Text style={ui.buttonText}>На главную</Text>
+          <Text style={ui.buttonText}>{dict.home}</Text>
         </Pressable>
       </Screen>
     );
   }
 
   return (
-    <Screen title="Отзыв">
-      <Text style={ui.muted}>Перенаправляем...</Text>
+    <Screen title={dict.reviewTitle}>
+      <Text style={ui.muted}>{dict.redirecting}</Text>
     </Screen>
   );
 }

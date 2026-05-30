@@ -3,14 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { RestaurantAvatar } from "@/components/restaurant-avatar";
 import {
-  CUISINE_FILTER_OPTIONS,
-  DISTRICT_FILTER_OPTIONS,
-  PRICE_LEVEL_FILTER_OPTIONS,
   getPriceLabel,
   getRestaurantDistrict,
   getRestaurantName,
-  t,
-  type Locale,
   type RestaurantSearchHit
 } from "@tablebook/shared";
 import { DateField, TimeField } from "@/components/DateTimeField";
@@ -18,21 +13,8 @@ import { OptionRow } from "@/components/OptionRow";
 import { Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-
-const cuisines = [
-  { id: "", title: "Любая кухня" },
-  ...CUISINE_FILTER_OPTIONS.map((item) => ({ id: item.id, title: item.titleRu }))
-];
-
-const districts = [
-  { id: "", title: "Любой район" },
-  ...DISTRICT_FILTER_OPTIONS.map((item) => ({ id: item.id, title: item.titleRu }))
-];
-
-const priceLevels = [
-  { id: "", title: "Любой чек" },
-  ...PRICE_LEVEL_FILTER_OPTIONS.map((item) => ({ id: String(item.id), title: item.titleRu }))
-];
+import { useLocale } from "@/lib/use-locale";
+import { buildCuisineOptions, buildDistrictOptions, buildPriceLevelOptions } from "@/lib/filter-options";
 
 const guestOptions = ["1", "2", "3", "4", "5", "6"];
 
@@ -88,8 +70,10 @@ function hasSavedPreferences(user: {
 export default function SearchScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const locale: Locale = user?.locale ?? "ru";
-  const dict = t(locale);
+  const { locale, dict } = useLocale();
+  const cuisines = useMemo(() => buildCuisineOptions(locale, dict.anyCuisine), [dict.anyCuisine, locale]);
+  const districts = useMemo(() => buildDistrictOptions(locale, dict.anyDistrict), [dict.anyDistrict, locale]);
+  const priceLevels = useMemo(() => buildPriceLevelOptions(locale, dict.anyPrice), [dict.anyPrice, locale]);
   const [cuisine, setCuisine] = useState("");
   const [district, setDistrict] = useState("");
   const [priceLevel, setPriceLevel] = useState("");

@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import type { Locale } from "@tablebook/shared";
+import { getBrandName } from "@tablebook/shared";
 import { getReviewReminderOpenUrl } from "@/lib/review-reminder-links";
 
 type SendEmailInput = {
@@ -60,7 +61,7 @@ function getMailTransportConfig(): MailTransportConfig | null {
 function getFromAddress() {
   const gmailUser = process.env.GMAIL_USER?.trim();
   if (gmailUser && process.env.GMAIL_APP_PASSWORD?.trim()) {
-    return `TableBook <${gmailUser}>`;
+    return `${getBrandName("ru")} <${gmailUser}>`;
   }
   return process.env.SMTP_FROM ?? Constants.DefaultFrom;
 }
@@ -103,8 +104,9 @@ function verificationCopy(locale: Locale, verifyUrl: string) {
       html: `<p>Confirm your email by opening this link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>The link expires in 24 hours.</p>`
     };
   }
+  const brand = getBrandName("ru");
   return {
-    subject: "Подтвердите email в TableBook",
+    subject: `Подтвердите email в ${brand}`,
     text: `Подтвердите email, перейдя по ссылке:\n\n${verifyUrl}\n\nСсылка действует 24 часа.`,
     html: `<p>Подтвердите email, перейдя по ссылке:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Ссылка действует 24 часа.</p>`
   };
@@ -118,8 +120,9 @@ function passwordResetCopy(locale: Locale, resetUrl: string) {
       html: `<p>Reset your password by opening this link:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>The link expires in 1 hour.</p>`
     };
   }
+  const brand = getBrandName("ru");
   return {
-    subject: "Сброс пароля TableBook",
+    subject: `Сброс пароля ${brand}`,
     text: `Сбросьте пароль, перейдя по ссылке:\n\n${resetUrl}\n\nСсылка действует 1 час.`,
     html: `<p>Сбросьте пароль, перейдя по ссылке:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>Ссылка действует 1 час.</p>`
   };
@@ -193,7 +196,7 @@ export async function sendReviewReminderEmail(input: {
 }
 
 const Constants = {
-  DefaultFrom: "TableBook <noreply@tablebook.app>",
+  DefaultFrom: "ЗаСтолом <noreply@tablebook.app>",
   GmailHost: "smtp.gmail.com",
   GmailPort: 587,
   SmtpTlsPort: 465

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "TableBook",
+    "name": "ЗаСтолом",
     "slug": "tablebook",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,13 +13,13 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "name": "TableBook",
-      "shortName": "TableBook",
+      "name": "ЗаСтолом",
+      "shortName": "ЗаСтолом",
       "themeColor": "#06b6d4",
       "backgroundColor": "#0f172a",
       "display": "standalone",
       "startUrl": "/",
-      "description": "Restaurant table booking"
+      "description": "Бронирование столиков в ресторанах"
     },
     "ios": {
       "supportsTablet": true,

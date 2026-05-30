@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, Text } from "react-native";
 import { Screen, ui } from "@/components/ui";
-import { t, type Locale } from "@tablebook/shared";
+import { useLocale } from "@/lib/use-locale";
 
 export default function ConfirmationScreen() {
   const params = useLocalSearchParams<{
@@ -13,8 +13,7 @@ export default function ConfirmationScreen() {
     status?: string;
   }>();
   const router = useRouter();
-  const locale: Locale = "ru";
-  const dict = t(locale);
+  const { locale, dict } = useLocale();
   const isPending = params.status === "pending";
   const title = isPending ? dict.pendingConfirmationTitle : dict.confirmedTitle;
 

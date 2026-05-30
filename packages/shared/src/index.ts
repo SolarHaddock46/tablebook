@@ -1,4 +1,5 @@
 export * from "./types";
+export * from "./brand";
 export * from "./constants";
 export * from "./i18n";
 export * from "./restaurant-view";

@@ -4,8 +4,11 @@ import { Pressable, Text, TextInput, View } from "react-native";
 import { Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
 
+import { useLocale } from "@/lib/use-locale";
+
 export default function OwnerOnboardingScreen() {
   const router = useRouter();
+  const { dict } = useLocale();
   const [hasRestaurant, setHasRestaurant] = useState(false);
   const [nameRu, setNameRu] = useState("");
   const [nameEn, setNameEn] = useState("");
@@ -47,32 +50,32 @@ export default function OwnerOnboardingScreen() {
   }
 
   return (
-    <Screen title="Создать ресторан" scrollable>
+    <Screen title={dict.onboard} scrollable>
       {hasRestaurant ? (
         <View style={ui.card}>
-          <Text style={ui.value}>Ресторан уже создан</Text>
+          <Text style={ui.value}>{dict.restaurantAlreadyCreated}</Text>
           <Pressable style={ui.button} onPress={() => router.replace("/(owner)/profile")}>
-            <Text style={ui.buttonText}>Перейти в кабинет</Text>
+            <Text style={ui.buttonText}>{dict.goToDashboard}</Text>
           </Pressable>
         </View>
       ) : null}
       <TextInput
         style={ui.input}
-        placeholder="Название RU"
+        placeholder={dict.restaurantNameRu}
         placeholderTextColor="#64748b"
         value={nameRu}
         onChangeText={setNameRu}
       />
       <TextInput
         style={ui.input}
-        placeholder="Название EN"
+        placeholder={dict.restaurantNameEn}
         placeholderTextColor="#64748b"
         value={nameEn}
         onChangeText={setNameEn}
       />
       <TextInput
         style={ui.input}
-        placeholder="Ценовой уровень 1-4"
+        placeholder={dict.priceLevelHint}
         placeholderTextColor="#64748b"
         value={priceLevel}
         onChangeText={setPriceLevel}
@@ -80,7 +83,7 @@ export default function OwnerOnboardingScreen() {
       />
       {error ? <Text style={{ color: "#f87171" }}>{error}</Text> : null}
       <Pressable style={ui.button} onPress={handleCreate} disabled={hasRestaurant}>
-        <Text style={ui.buttonText}>Создать</Text>
+        <Text style={ui.buttonText}>{dict.create}</Text>
       </Pressable>
     </Screen>
   );

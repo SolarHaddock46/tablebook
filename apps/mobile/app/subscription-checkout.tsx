@@ -3,12 +3,13 @@ import { useEffect, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useLocale } from "@/lib/use-locale";
 import { formatPlanPrice, planTypeLabel, type SubscriptionPlan } from "@tablebook/shared";
 
 export default function SubscriptionCheckoutScreen() {
   const router = useRouter();
   const { planId } = useLocalSearchParams<{ planId: string }>();
-  const locale = Constants.Locale;
+  const { locale, dict } = useLocale();
   const [plan, setPlan] = useState<SubscriptionPlan | null>(null);
   const [cardNumber, setCardNumber] = useState(Constants.DefaultCardNumber);
   const [cardExpiry, setCardExpiry] = useState(Constants.DefaultCardExpiry);
@@ -24,8 +25,8 @@ export default function SubscriptionCheckoutScreen() {
         const selected = response.plans.find((item) => item.id === planId) ?? null;
         setPlan(selected);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : "Ошибка загрузки"));
-  }, [planId]);
+      .catch((err) => setError(err instanceof Error ? err.message : dict.searchError));
+  }, [dict.searchError, planId]);
 
   async function handlePay() {
     if (!plan) return;
@@ -35,14 +36,14 @@ export default function SubscriptionCheckoutScreen() {
       await api.paySubscription(plan.id);
       router.replace("/(owner)/subscription");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Оплата не прошла");
+      setError(err instanceof Error ? err.message : dict.searchError);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Screen title="Оплата подписки" scrollable>
+    <Screen title={dict.subscriptionCheckout} scrollable>
       {plan ? (
         <View style={ui.card}>
           <Text style={ui.value}>{planTypeLabel(plan.name, locale)}</Text>
@@ -50,7 +51,7 @@ export default function SubscriptionCheckoutScreen() {
         </View>
       ) : null}
       {error ? <Text style={{ color: "#f87171" }}>{error}</Text> : null}
-      <Text style={ui.label}>Номер карты</Text>
+      <Text style={ui.label}>Card number</Text>
       <TextInput
         style={ui.input}
         value={cardNumber}
@@ -58,7 +59,7 @@ export default function SubscriptionCheckoutScreen() {
         keyboardType="number-pad"
         placeholderTextColor="#64748b"
       />
-      <Text style={ui.label}>Срок действия</Text>
+      <Text style={ui.label}>Expiry</Text>
       <TextInput
         style={ui.input}
         value={cardExpiry}
@@ -74,7 +75,7 @@ export default function SubscriptionCheckoutScreen() {
         secureTextEntry
         placeholderTextColor="#64748b"
       />
-      <Text style={ui.label}>Имя держателя</Text>
+      <Text style={ui.label}>Cardholder</Text>
       <TextInput
         style={ui.input}
         value={cardHolder}
@@ -82,17 +83,16 @@ export default function SubscriptionCheckoutScreen() {
         placeholderTextColor="#64748b"
       />
       <Pressable style={ui.button} onPress={handlePay} disabled={loading || !plan}>
-        <Text style={ui.buttonText}>{loading ? "Обработка..." : "Оплатить"}</Text>
+        <Text style={ui.buttonText}>{loading ? dict.processing : dict.pay}</Text>
       </Pressable>
       <Pressable onPress={() => router.back()}>
-        <Text style={ui.link}>← Назад</Text>
+        <Text style={ui.link}>← {dict.back}</Text>
       </Pressable>
     </Screen>
   );
 }
 
 enum Constants {
-  Locale = "ru",
   DefaultCardNumber = "4111 1111 1111 1111",
   DefaultCardExpiry = "12/28",
   DefaultCardCvv = "123",

@@ -3,9 +3,11 @@ import { useState } from "react";
 import { Pressable, Text, TextInput } from "react-native";
 import { Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useLocale } from "@/lib/use-locale";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
+  const { dict } = useLocale();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -17,20 +19,20 @@ export default function ForgotPasswordScreen() {
     setMessage(null);
     try {
       await api.forgotPassword({ email: email.trim() });
-      setMessage("Если аккаунт существует, мы отправили письмо со ссылкой для сброса.");
+      setMessage(dict.forgotPasswordSent);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Не удалось отправить запрос");
+      setError(err instanceof Error ? err.message : dict.genericError);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Screen title="Сброс пароля" scrollable>
-      <Text style={ui.muted}>Введите email — мы отправим ссылку для сброса пароля.</Text>
+    <Screen title={dict.forgotPasswordTitle} scrollable>
+      <Text style={ui.muted}>{dict.forgotPasswordHint}</Text>
       <TextInput
         style={ui.input}
-        placeholder="Email"
+        placeholder={dict.email}
         placeholderTextColor="#64748b"
         autoCapitalize="none"
         keyboardType="email-address"
@@ -40,19 +42,11 @@ export default function ForgotPasswordScreen() {
       {message ? <Text style={{ color: "#4ade80" }}>{message}</Text> : null}
       {error ? <Text style={{ color: "#f87171" }}>{error}</Text> : null}
       <Pressable style={ui.button} onPress={handleSubmit} disabled={loading}>
-        <Text style={ui.buttonText}>{loading ? "..." : "Отправить"}</Text>
+        <Text style={ui.buttonText}>{loading ? "..." : dict.send}</Text>
       </Pressable>
       <Link href="/(auth)/login" style={ui.link}>
-        Назад ко входу
+        {dict.backToLogin}
       </Link>
-      {message ? (
-        <Pressable
-          style={[ui.button, { backgroundColor: "#334155" }]}
-          onPress={() => router.replace("/(auth)/login")}
-        >
-          <Text style={ui.buttonText}>Ко входу</Text>
-        </Pressable>
-      ) : null}
     </Screen>
   );
 }

@@ -1,16 +1,13 @@
 import { Link, useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
-import {
-  CUISINE_FILTER_OPTIONS,
-  DISTRICT_FILTER_OPTIONS,
-  PRICE_LEVEL_FILTER_OPTIONS,
-  t,
-  type Locale
-} from "@tablebook/shared";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { MultiOptionRow, OptionRow } from "@/components/OptionRow";
 import { Screen, ui } from "@/components/ui";
 import { useAuth } from "@/lib/auth-context";
+import { useLocale } from "@/lib/use-locale";
+import { buildCuisineOptions, buildDistrictOptions, buildPriceLevelOptions } from "@/lib/filter-options";
+import { t } from "@tablebook/shared";
 
 const Constants = {
   StepAccount: 1,
@@ -21,8 +18,7 @@ const Constants = {
 export default function SignupScreen() {
   const router = useRouter();
   const { register } = useAuth();
-  const locale: Locale = "ru";
-  const dict = t(locale);
+  const { locale, dict } = useLocale();
   const [step, setStep] = useState<number>(Constants.StepAccount);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -35,21 +31,9 @@ export default function SignupScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const cuisineOptions = CUISINE_FILTER_OPTIONS.map((item) => ({
-    id: item.id,
-    title: locale === "ru" ? item.titleRu : item.titleEn
-  }));
-  const districtOptions = DISTRICT_FILTER_OPTIONS.map((item) => ({
-    id: item.id,
-    title: locale === "ru" ? item.titleRu : item.titleEn
-  }));
-  const priceLevelOptions = [
-    { id: "", title: dict.any },
-    ...PRICE_LEVEL_FILTER_OPTIONS.map((item) => ({
-      id: String(item.id),
-      title: item.titleRu
-    }))
-  ];
+  const cuisineOptions = buildCuisineOptions(locale, dict.anyCuisine);
+  const districtOptions = buildDistrictOptions(locale, dict.anyDistrict);
+  const priceLevelOptions = buildPriceLevelOptions(locale, dict.anyPrice);
 
   async function handleSignup() {
     setLoading(true);
@@ -109,6 +93,7 @@ export default function SignupScreen() {
 
   return (
     <Screen title={dict.signup} scrollable>
+      <LanguageSwitcher />
       <Text style={ui.muted}>{renderStepLabel(step, role, dict)}</Text>
       {step === Constants.StepAccount ? renderAccountStep() : null}
       {step === Constants.StepProfile ? renderProfileStep() : null}

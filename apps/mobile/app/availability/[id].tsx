@@ -4,14 +4,15 @@ import { FlatList, Pressable, Text } from "react-native";
 import { ApiError } from "@tablebook/api-client";
 import { ListSeparator, Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
-import { getRestaurantName, type Locale, type Restaurant, type RestaurantTable } from "@tablebook/shared";
+import { useLocale } from "@/lib/use-locale";
+import { getRestaurantName, type Restaurant, type RestaurantTable } from "@tablebook/shared";
 
 type AvailabilityLoadState = "loading" | "ready" | "empty" | "error";
 
 export default function AvailabilityScreen() {
   const params = useLocalSearchParams<{ id: string; date?: string; time?: string; guests?: string; table_id?: string }>();
   const router = useRouter();
-  const locale: Locale = "ru";
+  const { locale, dict } = useLocale();
   const date = params.date ?? new Date().toISOString().slice(0, 10);
   const time = params.time ?? "19:00";
   const guests = Number(params.guests ?? "2");
@@ -100,15 +101,15 @@ export default function AvailabilityScreen() {
   if (loadState === "loading" || !restaurant) {
     return (
       <Screen>
-        <Text style={ui.muted}>Загрузка доступных столиков...</Text>
+        <Text style={ui.muted}>{dict.loadingTables}</Text>
       </Screen>
     );
   }
 
   if (loadState === "error") {
     return (
-      <Screen title="Бронирование">
-        <Text style={{ color: "#f87171" }}>{error ?? "Ошибка загрузки"}</Text>
+      <Screen title={dict.bookingTitle}>
+        <Text style={{ color: "#f87171" }}>{error ?? dict.loadError}</Text>
       </Screen>
     );
   }
@@ -116,14 +117,14 @@ export default function AvailabilityScreen() {
   if (loadState === "empty") {
     return (
       <Screen>
-        <Text style={ui.muted}>Нет свободных столиков, ищем альтернативы...</Text>
+        <Text style={ui.muted}>{dict.searchingAlternatives}</Text>
       </Screen>
     );
   }
 
   return (
     <Screen title={getRestaurantName(restaurant, locale)}>
-      <Text style={ui.muted}>{date} · {time} · {guests} гостей</Text>
+      <Text style={ui.muted}>{date} · {time} · {guests} {dict.forGuests}</Text>
       <FlatList
         style={ui.flatList}
         contentContainerStyle={ui.listContent}
@@ -136,13 +137,13 @@ export default function AvailabilityScreen() {
             onPress={() => setSelectedTableId(item.id)}
           >
             <Text style={ui.value}>{locale === "ru" ? item.zone_ru : item.zone_en}</Text>
-            <Text style={ui.muted}>{item.capacity} гостей</Text>
+            <Text style={ui.muted}>{item.capacity} {dict.forGuests}</Text>
           </Pressable>
         )}
       />
       {error ? <Text style={{ color: "#f87171" }}>{error}</Text> : null}
       <Pressable style={ui.button} onPress={confirmBooking} disabled={bookingLoading || !selectedTableId}>
-        <Text style={ui.buttonText}>{bookingLoading ? "..." : "Подтвердить бронь"}</Text>
+        <Text style={ui.buttonText}>{bookingLoading ? "..." : dict.confirmBooking}</Text>
       </Pressable>
     </Screen>
   );

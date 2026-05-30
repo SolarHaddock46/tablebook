@@ -3,10 +3,12 @@ import { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { ListSeparator, Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useLocale } from "@/lib/use-locale";
 import type { SubscriptionAnalyticsDay } from "@tablebook/shared";
 
 export default function OwnerAnalyticsScreen() {
   const router = useRouter();
+  const { locale, dict } = useLocale();
   const [days, setDays] = useState<SubscriptionAnalyticsDay[]>([]);
   const [totals, setTotals] = useState({
     total_bookings: 0,
@@ -17,6 +19,8 @@ export default function OwnerAnalyticsScreen() {
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const numberLocale = locale === "ru" ? "ru-RU" : "en-US";
+  const currencySymbol = locale === "ru" ? "₽" : "$";
 
   const loadAnalytics = useCallback(() => {
     setLoading(true);
@@ -27,9 +31,9 @@ export default function OwnerAnalyticsScreen() {
         setTotals(response.totals);
         setError(null);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : "Ошибка загрузки"))
+      .catch((err) => setError(err instanceof Error ? err.message : dict.loadError))
       .finally(() => setLoading(false));
-  }, []);
+  }, [dict.loadError]);
 
   useEffect(() => {
     loadAnalytics();
@@ -39,32 +43,50 @@ export default function OwnerAnalyticsScreen() {
     return (
       <View style={ui.card}>
         <Text style={ui.value}>{item.date}</Text>
-        <Text style={ui.muted}>Всего броней: {item.total_bookings}</Text>
-        <Text style={ui.muted}>Подтверждено: {item.confirmed_bookings}</Text>
-        <Text style={ui.muted}>Отменено: {item.cancelled_bookings}</Text>
-        <Text style={ui.muted}>Выручка: {(item.revenue_cents / 100).toLocaleString("ru-RU")} ₽</Text>
-        <Text style={ui.muted}>Заполняемость: {item.occupancy_rate.toFixed(1)}%</Text>
+        <Text style={ui.muted}>
+          {dict.analyticsTotalBookings}: {item.total_bookings}
+        </Text>
+        <Text style={ui.muted}>
+          {dict.analyticsConfirmed}: {item.confirmed_bookings}
+        </Text>
+        <Text style={ui.muted}>
+          {dict.analyticsCancelled}: {item.cancelled_bookings}
+        </Text>
+        <Text style={ui.muted}>
+          {dict.analyticsRevenue}: {(item.revenue_cents / 100).toLocaleString(numberLocale)} {currencySymbol}
+        </Text>
+        <Text style={ui.muted}>
+          {dict.analyticsOccupancy}: {item.occupancy_rate.toFixed(1)}%
+        </Text>
       </View>
     );
   }
 
   return (
-    <Screen title="Аналитика">
+    <Screen title={dict.analytics}>
       <Pressable onPress={() => router.back()}>
-        <Text style={ui.link}>← Назад</Text>
+        <Text style={ui.link}>← {dict.back}</Text>
       </Pressable>
-      {loading ? <Text style={ui.muted}>Загрузка...</Text> : null}
+      {loading ? <Text style={ui.muted}>{dict.loading}</Text> : null}
       {error ? <Text style={{ color: "#f87171" }}>{error}</Text> : null}
       <View style={ui.card}>
-        <Text style={ui.label}>Итого за {Constants.AnalyticsDays} дней</Text>
-        <Text style={ui.muted}>Броней: {totals.total_bookings}</Text>
-        <Text style={ui.muted}>Подтверждено: {totals.confirmed_bookings}</Text>
-        <Text style={ui.muted}>Отменено: {totals.cancelled_bookings}</Text>
-        <Text style={ui.muted}>
-          Выручка: {(totals.revenue_cents / 100).toLocaleString("ru-RU")} ₽
+        <Text style={ui.label}>
+          {dict.analyticsTotalForDays.replace("{days}", String(Constants.AnalyticsDays))}
         </Text>
         <Text style={ui.muted}>
-          Средняя заполняемость: {totals.avg_occupancy_rate.toFixed(1)}%
+          {dict.analyticsTotalBookings}: {totals.total_bookings}
+        </Text>
+        <Text style={ui.muted}>
+          {dict.analyticsConfirmed}: {totals.confirmed_bookings}
+        </Text>
+        <Text style={ui.muted}>
+          {dict.analyticsCancelled}: {totals.cancelled_bookings}
+        </Text>
+        <Text style={ui.muted}>
+          {dict.analyticsRevenue}: {(totals.revenue_cents / 100).toLocaleString(numberLocale)} {currencySymbol}
+        </Text>
+        <Text style={ui.muted}>
+          {dict.analyticsAvgOccupancy}: {totals.avg_occupancy_rate.toFixed(1)}%
         </Text>
       </View>
       <FlatList

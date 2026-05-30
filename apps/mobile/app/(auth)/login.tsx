@@ -2,14 +2,17 @@ import { Link, useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { Screen, ui } from "@/components/ui";
+import { useLocale } from "@/lib/use-locale";
 import { useAuth } from "@/lib/auth-context";
 import { isSafeInAppRedirect } from "@/lib/review-reminder-flow";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 export default function LoginScreen() {
   const router = useRouter();
   const { redirect } = useLocalSearchParams<{ redirect?: string | string[] }>();
   const redirectPath = Array.isArray(redirect) ? redirect[0] : redirect;
   const { login } = useAuth();
+  const { dict } = useLocale();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +26,7 @@ export default function LoginScreen() {
     try {
       const result = await login(email.trim(), password);
       if (!result.email_verified) {
-        setWarning("Email не подтверждён. Проверьте почту или отправьте письмо снова.");
+        setWarning(dict.emailNotVerifiedWarning);
         router.replace("/(auth)/verify-email" as Href);
         return;
       }
@@ -40,11 +43,12 @@ export default function LoginScreen() {
   }
 
   return (
-    <Screen title="TableBook" scrollable>
-      <Text style={ui.muted}>Вход в аккаунт</Text>
+    <Screen title={dict.title} scrollable>
+      <LanguageSwitcher />
+      <Text style={ui.muted}>{dict.login}</Text>
       <TextInput
         style={ui.input}
-        placeholder="Email"
+        placeholder={dict.email}
         placeholderTextColor="#64748b"
         autoCapitalize="none"
         keyboardType="email-address"
@@ -53,7 +57,7 @@ export default function LoginScreen() {
       />
       <TextInput
         style={ui.input}
-        placeholder="Password"
+        placeholder={dict.password}
         placeholderTextColor="#64748b"
         secureTextEntry
         value={password}
@@ -62,14 +66,14 @@ export default function LoginScreen() {
       {warning ? <Text style={{ color: "#fbbf24" }}>{warning}</Text> : null}
       {error ? <Text style={{ color: "#f87171" }}>{error}</Text> : null}
       <Pressable style={ui.button} onPress={handleLogin} disabled={loading}>
-        <Text style={ui.buttonText}>{loading ? "..." : "Войти"}</Text>
+        <Text style={ui.buttonText}>{loading ? "..." : dict.login}</Text>
       </Pressable>
       <View style={{ gap: 8 }}>
         <Link href="/(auth)/signup" style={ui.link}>
-          Регистрация
+          {dict.signup}
         </Link>
         <Link href={"/(auth)/forgot-password" as Href} style={ui.link}>
-          Забыли пароль?
+          {dict.forgotPassword}
         </Link>
       </View>
     </Screen>

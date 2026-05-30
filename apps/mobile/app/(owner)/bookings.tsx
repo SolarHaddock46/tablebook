@@ -2,14 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { ListSeparator, Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useLocale } from "@/lib/use-locale";
 import { getBookingStatusLabel, t, type Booking, type Locale, type Restaurant } from "@tablebook/shared";
 
 type OwnerBooking = Booking & { guest_name?: string | null };
 type OwnerTab = "pending" | "confirmed" | "all";
 
 export default function OwnerBookingsScreen() {
-  const locale: Locale = "ru";
-  const dict = t(locale);
+  const { locale, dict } = useLocale();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [items, setItems] = useState<OwnerBooking[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -83,10 +83,10 @@ export default function OwnerBookingsScreen() {
     setMessage(null);
     try {
       await api.confirmOwnerBooking(bookingId);
-      setMessage("Бронь подтверждена");
+      setMessage(dict.ownerBookingConfirmed);
       loadBookings();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Не удалось подтвердить бронь");
+      setError(caught instanceof Error ? caught.message : dict.ownerConfirmFailed);
     }
   }
 
@@ -97,10 +97,10 @@ export default function OwnerBookingsScreen() {
       await api.rejectOwnerBooking(bookingId, { reason: rejectReason || undefined });
       setRejectingId(null);
       setRejectReason("");
-      setMessage("Бронь отклонена");
+      setMessage(dict.ownerBookingRejected);
       loadBookings();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Не удалось отклонить бронь");
+      setError(caught instanceof Error ? caught.message : dict.ownerRejectFailed);
     }
   }
 
@@ -123,10 +123,10 @@ export default function OwnerBookingsScreen() {
       setManualGuestName("");
       setManualGuestPhone("");
       setManualNote("");
-      setMessage("Ручная бронь создана");
+      setMessage(dict.ownerManualBookingCreated);
       loadBookings();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Не удалось создать бронь");
+      setError(caught instanceof Error ? caught.message : dict.ownerManualBookingFailed);
     }
   }
 
@@ -138,8 +138,8 @@ export default function OwnerBookingsScreen() {
   }
 
   return (
-    <Screen title="Брони ресторана">
-      {!restaurant ? <Text style={ui.muted}>Сначала создайте ресторан</Text> : null}
+    <Screen title={dict.ownerBookingsTitle}>
+      {!restaurant ? <Text style={ui.muted}>{dict.createRestaurantFirst}</Text> : null}
       {restaurant ? (
         <>
           {pendingCount > 0 ? (
@@ -163,7 +163,7 @@ export default function OwnerBookingsScreen() {
               keyExtractor={(item) => item}
               contentContainerStyle={{ gap: 8, paddingVertical: 4 }}
               showsHorizontalScrollIndicator={false}
-              renderItem={({ item }) => renderCalendarDay(item, selectedDate, items, setSelectedDate)}
+              renderItem={({ item }) => renderCalendarDay(item, selectedDate, items, setSelectedDate, dict)}
             />
           </View>
         </>
@@ -243,7 +243,9 @@ export default function OwnerBookingsScreen() {
         ItemSeparatorComponent={ListSeparator}
         ListEmptyComponent={
           <Text style={ui.muted}>
-            {selectedDate ? `На ${selectedDate} нет броней` : "Нет броней"}
+            {selectedDate
+              ? dict.ownerNoBookingsForDate.replace("{date}", selectedDate)
+              : dict.ownerNoBookings}
           </Text>
         }
         renderItem={({ item }) =>
@@ -292,7 +294,8 @@ function renderCalendarDay(
   item: string,
   selectedDate: string | null,
   items: OwnerBooking[],
-  setSelectedDate: (date: string) => void
+  setSelectedDate: (date: string) => void,
+  dict: ReturnType<typeof t>
 ) {
   const selected = item === selectedDate;
   const count = items.filter((booking) => booking.date === item).length;
@@ -309,7 +312,7 @@ function renderCalendarDay(
       ]}
     >
       <Text style={selected ? ui.link : ui.value}>{item}</Text>
-      <Text style={ui.muted}>{count} броней</Text>
+      <Text style={ui.muted}>{dict.ownerBookingsCount.replace("{count}", String(count))}</Text>
     </Pressable>
   );
 }
@@ -332,7 +335,7 @@ function renderBookingItem(
         {item.date} · {item.time}
       </Text>
       <Text style={ui.muted}>
-        {item.guest_name ?? "Гость"} · {item.guests} гостей · {statusLabel}
+        {item.guest_name ?? dict.guest} · {item.guests} {dict.forGuests} · {statusLabel}
       </Text>
       {item.guest_phone ? <Text style={ui.muted}>{item.guest_phone}</Text> : null}
       {item.is_manual && item.manual_note ? <Text style={ui.muted}>{item.manual_note}</Text> : null}

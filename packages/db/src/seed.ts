@@ -40,7 +40,7 @@ const TestRestaurants: TestRestaurant[] = [
   {
     id: "11111111-1111-1111-1111-111111111101",
     nameEn: "TableBook Demo Bistro",
-    nameRu: "TableBook Демо Бистро",
+    nameRu: "ЗаСтолом Бистро",
     cuisineEn: "European",
     cuisineRu: "Европейская",
     districtEn: "Center",

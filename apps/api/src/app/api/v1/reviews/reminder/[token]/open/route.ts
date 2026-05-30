@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { bookings, getDb, restaurants, users } from "@tablebook/db";
+import { getBrandName } from "@tablebook/shared";
 import { buildReviewReminderRedirectHtml } from "@/lib/review-reminder-links";
 import { verifyReviewReminderToken } from "@/lib/review-reminder-token";
 
@@ -45,8 +46,8 @@ export async function GET(request: Request, { params }: Props) {
     const locale = (userRow?.locale === "en" ? "en" : "ru") as "ru" | "en";
     const restaurantName =
       locale === "ru"
-        ? (restaurantRow?.nameRu ?? "TableBook")
-        : (restaurantRow?.nameEn ?? "TableBook");
+        ? (restaurantRow?.nameRu ?? getBrandName("ru"))
+        : (restaurantRow?.nameEn ?? getBrandName("en"));
 
     const html = buildReviewReminderRedirectHtml({ token, restaurantName, locale });
     return new Response(html, {

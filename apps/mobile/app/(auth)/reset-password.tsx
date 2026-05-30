@@ -3,10 +3,12 @@ import { useState } from "react";
 import { Pressable, Text, TextInput } from "react-native";
 import { Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useLocale } from "@/lib/use-locale";
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
   const { token } = useLocalSearchParams<{ token?: string }>();
+  const { dict } = useLocale();
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -14,7 +16,7 @@ export default function ResetPasswordScreen() {
 
   async function handleSubmit() {
     if (!token) {
-      setError("Ссылка для сброса недействительна");
+      setError(dict.resetPasswordInvalidLink);
       return;
     }
     setLoading(true);
@@ -22,20 +24,20 @@ export default function ResetPasswordScreen() {
     setMessage(null);
     try {
       await api.resetPassword({ token, password });
-      setMessage("Пароль обновлён. Теперь можно войти.");
+      setMessage(dict.resetPasswordSuccess);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Не удалось обновить пароль");
+      setError(err instanceof Error ? err.message : dict.genericError);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Screen title="Новый пароль" scrollable>
-      <Text style={ui.muted}>Введите новый пароль для вашего аккаунта.</Text>
+    <Screen title={dict.resetPasswordTitle} scrollable>
+      <Text style={ui.muted}>{dict.resetPasswordHint}</Text>
       <TextInput
         style={ui.input}
-        placeholder="Новый пароль (min 8)"
+        placeholder={dict.newPassword}
         placeholderTextColor="#64748b"
         secureTextEntry
         value={password}
@@ -44,18 +46,18 @@ export default function ResetPasswordScreen() {
       {message ? <Text style={{ color: "#4ade80" }}>{message}</Text> : null}
       {error ? <Text style={{ color: "#f87171" }}>{error}</Text> : null}
       <Pressable style={ui.button} onPress={handleSubmit} disabled={loading || !token}>
-        <Text style={ui.buttonText}>{loading ? "..." : "Сохранить пароль"}</Text>
+        <Text style={ui.buttonText}>{loading ? "..." : dict.resetPasswordSave}</Text>
       </Pressable>
       {message ? (
         <Pressable
           style={[ui.button, { backgroundColor: "#334155" }]}
           onPress={() => router.replace("/(auth)/login")}
         >
-          <Text style={ui.buttonText}>Ко входу</Text>
+          <Text style={ui.buttonText}>{dict.resetPasswordBackToLogin}</Text>
         </Pressable>
       ) : (
         <Link href="/(auth)/login" style={ui.link}>
-          Назад ко входу
+          {dict.backToLogin}
         </Link>
       )}
     </Screen>

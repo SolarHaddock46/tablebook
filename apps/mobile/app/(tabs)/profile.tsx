@@ -1,22 +1,18 @@
 import { useEffect, useState } from "react";
 import { Pressable, Text, TextInput } from "react-native";
-import {
-  CUISINE_FILTER_OPTIONS,
-  DISTRICT_FILTER_OPTIONS,
-  PRICE_LEVEL_FILTER_OPTIONS,
-  t,
-  type Locale
-} from "@tablebook/shared";
 import { MultiOptionRow, OptionRow } from "@/components/OptionRow";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { Screen, ui } from "@/components/ui";
+import { buildCuisineOptions, buildDistrictOptions, buildPriceLevelOptions } from "@/lib/filter-options";
 import { useAuth } from "@/lib/auth-context";
+import { api } from "@/lib/api";
+import { useLocale } from "@/lib/use-locale";
 import { useRouter } from "expo-router";
 
 export default function ProfileScreen() {
   const { user, logout, refreshMe } = useAuth();
+  const { locale, dict } = useLocale();
   const router = useRouter();
-  const locale: Locale = user?.locale ?? "ru";
-  const dict = t(locale);
   const [displayName, setDisplayName] = useState(user?.display_name ?? "");
   const [fullName, setFullName] = useState(user?.full_name ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
@@ -27,6 +23,10 @@ export default function ProfileScreen() {
   );
   const [message, setMessage] = useState<string | null>(null);
 
+  const cuisineOptions = buildCuisineOptions(locale, dict.anyCuisine);
+  const districtOptions = buildDistrictOptions(locale, dict.anyDistrict);
+  const priceLevelOptions = buildPriceLevelOptions(locale, dict.anyPrice);
+
   useEffect(() => {
     setDisplayName(user?.display_name ?? "");
     setFullName(user?.full_name ?? "");
@@ -36,24 +36,7 @@ export default function ProfileScreen() {
     setPreferredPriceLevel(user?.preferred_price_level ? String(user.preferred_price_level) : "");
   }, [user]);
 
-  const cuisineOptions = CUISINE_FILTER_OPTIONS.map((item) => ({
-    id: item.id,
-    title: locale === "ru" ? item.titleRu : item.titleEn
-  }));
-  const districtOptions = DISTRICT_FILTER_OPTIONS.map((item) => ({
-    id: item.id,
-    title: locale === "ru" ? item.titleRu : item.titleEn
-  }));
-  const priceLevelOptions = [
-    { id: "", title: dict.any },
-    ...PRICE_LEVEL_FILTER_OPTIONS.map((item) => ({
-      id: String(item.id),
-      title: item.titleRu
-    }))
-  ];
-
   async function handleSave() {
-    const { api } = await import("@/lib/api");
     await api.updateMe({
       display_name: displayName.trim() || undefined,
       full_name: fullName.trim() || null,
@@ -78,6 +61,7 @@ export default function ProfileScreen() {
   return (
     <Screen title={dict.profile} scrollable>
       <Text style={ui.muted}>{user?.email}</Text>
+      <LanguageSwitcher />
       <TextInput
         style={ui.input}
         value={displayName}

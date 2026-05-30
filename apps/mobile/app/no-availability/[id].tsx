@@ -3,14 +3,14 @@ import { useEffect, useState } from "react";
 import { Pressable, Text } from "react-native";
 import { MatchReasons, Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
-import { getPriceLabel, getRestaurantName, t, type Locale, type Restaurant, type RestaurantAlternative } from "@tablebook/shared";
+import { useLocale } from "@/lib/use-locale";
+import { getPriceLabel, getRestaurantName, type Restaurant, type RestaurantAlternative } from "@tablebook/shared";
 
 export default function NoAvailabilityScreen() {
   const params = useLocalSearchParams<{ id: string; date?: string; time?: string; guests?: string }>();
   const time = params.time ?? "19:00";
   const router = useRouter();
-  const locale: Locale = "ru";
-  const dict = t(locale);
+  const { locale, dict } = useLocale();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [alternatives, setAlternatives] = useState<RestaurantAlternative[]>([]);
 
@@ -28,7 +28,7 @@ export default function NoAvailabilityScreen() {
   }, [locale, params.date, params.guests, params.id, time]);
 
   return (
-    <Screen title="Нет мест" scrollable>
+    <Screen title={dict.noAvailability} scrollable>
       {restaurant ? <Text style={ui.muted}>{getRestaurantName(restaurant, locale)}</Text> : null}
       <Text style={ui.muted}>
         {params.date ?? new Date().toISOString().slice(0, 10)} · {time} · {params.guests ?? "2"} гостей

@@ -3,12 +3,12 @@ import { useCallback, useState } from "react";
 import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { ListSeparator, Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
-import { getBookingStatusLabel, isPastVisitBooking, t, type Booking, type Locale } from "@tablebook/shared";
+import { useLocale } from "@/lib/use-locale";
+import { getBookingStatusLabel, isPastVisitBooking, type Booking, type Locale } from "@tablebook/shared";
 
 export default function BookingsScreen() {
   const router = useRouter();
-  const locale: Locale = "ru";
-  const dict = t(locale);
+  const { locale, dict } = useLocale();
   const [items, setItems] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [scope, setScope] = useState<"upcoming" | "past">("upcoming");
@@ -30,13 +30,13 @@ export default function BookingsScreen() {
   );
 
   return (
-    <Screen title="Мои брони">
+    <Screen title={dict.myBookings}>
       <Pressable
         style={[ui.card, { flexDirection: "row", justifyContent: "space-between" }]}
         onPress={() => setScope((prev) => (prev === "upcoming" ? "past" : "upcoming"))}
       >
-        <Text style={ui.value}>{scope === "upcoming" ? "Ближайшие" : "Прошедшие"}</Text>
-        <Text style={ui.link}>Сменить</Text>
+        <Text style={ui.value}>{scope === "upcoming" ? dict.upcomingBookings : dict.pastBookings}</Text>
+        <Text style={ui.link}>{dict.switchScope}</Text>
       </Pressable>
       <FlatList
         style={ui.flatList}
@@ -45,7 +45,7 @@ export default function BookingsScreen() {
         keyExtractor={(item) => item.id}
         ItemSeparatorComponent={ListSeparator}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor="#67e8f9" />}
-        ListEmptyComponent={<Text style={ui.muted}>{loading ? "Загрузка..." : "Нет броней"}</Text>}
+        ListEmptyComponent={<Text style={ui.muted}>{loading ? dict.loading : dict.ownerNoBookings}</Text>}
         renderItem={({ item }) => (
           <BookingCard
             booking={item}

@@ -1,3 +1,4 @@
+import { getBrandName } from "@tablebook/shared";
 import { resolveApiPublicUrl } from "@/lib/storage";
 
 export function getReviewReminderOpenUrl(token: string, request?: Request) {
@@ -25,7 +26,10 @@ export function buildReviewReminderRedirectHtml(input: {
     input.locale === "en"
       ? "If the app does not open automatically, use the button below."
       : "Если приложение не открылось, нажмите кнопку ниже.";
-  const button = input.locale === "en" ? "Open in TableBook" : "Открыть в TableBook";
+  const button =
+    input.locale === "en"
+      ? `Open in ${getBrandName("en")}`
+      : `Открыть в ${getBrandName("ru")}`;
 
   return `<!DOCTYPE html>
 <html lang="${input.locale}">

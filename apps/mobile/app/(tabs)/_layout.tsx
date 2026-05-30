@@ -1,7 +1,10 @@
 import { Tabs } from "expo-router";
 import { TabBarIcon } from "@/components/TabBarIcon";
+import { useLocale } from "@/lib/use-locale";
 
 export default function TabsLayout() {
+  const { dict } = useLocale();
+
   return (
     <Tabs
       screenOptions={{
@@ -14,7 +17,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="search"
         options={{
-          title: "Поиск",
+          title: dict.search,
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon activeName="search" inactiveName="search-outline" color={color} focused={focused} />
           )
@@ -23,7 +26,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="bookings"
         options={{
-          title: "Брони",
+          title: dict.myBookings,
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon activeName="calendar" inactiveName="calendar-outline" color={color} focused={focused} />
           )
@@ -32,7 +35,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Профиль",
+          title: dict.profile,
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon activeName="person" inactiveName="person-outline" color={color} focused={focused} />
           )

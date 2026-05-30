@@ -1,6 +1,6 @@
 # TableBook v2
 
-Cross-platform restaurant booking: Expo (iOS/Android/Web PWA) + Next.js API + self-hosted Postgres.
+Cross-platform restaurant booking (**ЗаСтолом** — ru UI): Expo (iOS/Android/Web PWA) + Next.js API + self-hosted Postgres.
 
 ## Stack
 
