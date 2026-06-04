@@ -1,4 +1,4 @@
-import { and, eq, gte } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { bookings, getDb, mapBooking } from "@tablebook/db";
 import { canCancelBooking } from "@tablebook/shared";
 import { jsonError, requireAuth } from "@/lib/auth-helpers";
@@ -11,7 +11,6 @@ export async function PATCH(request: Request, { params }: Props) {
   try {
     const { id } = await params;
     const authUser = await requireAuth(request);
-    const today = new Date().toISOString().slice(0, 10);
 
     const db = getDb();
     const [row] = await db.select().from(bookings).where(eq(bookings.id, id)).limit(1);
@@ -47,8 +46,12 @@ export async function PATCH(request: Request, { params }: Props) {
         cancelledAt: new Date(),
         updatedAt: new Date()
       })
-      .where(and(eq(bookings.id, id), gte(bookings.date, today)))
+      .where(eq(bookings.id, id))
       .returning();
+
+    if (!updated) {
+      return Response.json({ error: "Not found" }, { status: 404 });
+    }
 
     return Response.json({ booking: mapBooking(updated) });
   } catch (error) {

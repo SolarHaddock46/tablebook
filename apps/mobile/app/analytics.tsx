@@ -1,4 +1,3 @@
-import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { ListSeparator, Screen, ui } from "@/components/ui";
@@ -7,7 +6,6 @@ import { useLocale } from "@/lib/use-locale";
 import type { SubscriptionAnalyticsDay } from "@tablebook/shared";
 
 export default function OwnerAnalyticsScreen() {
-  const router = useRouter();
   const { locale, dict } = useLocale();
   const [days, setDays] = useState<SubscriptionAnalyticsDay[]>([]);
   const [totals, setTotals] = useState({
@@ -64,9 +62,6 @@ export default function OwnerAnalyticsScreen() {
 
   return (
     <Screen title={dict.analytics}>
-      <Pressable onPress={() => router.back()}>
-        <Text style={ui.link}>← {dict.back}</Text>
-      </Pressable>
       {loading ? <Text style={ui.muted}>{dict.loading}</Text> : null}
       {error ? <Text style={{ color: "#f87171" }}>{error}</Text> : null}
       <View style={ui.card}>

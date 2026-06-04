@@ -7,7 +7,7 @@ export default function Root({ children }: PropsWithChildren) {
       <head>
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#06b6d4" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -19,6 +19,11 @@ export default function Root({ children }: PropsWithChildren) {
                 width: 100%;
                 max-width: 100vw;
                 overflow-x: hidden;
+              }
+              input,
+              textarea,
+              select {
+                font-size: 16px;
               }
               .tablebook-picker-input {
                 position: absolute;
@@ -33,6 +38,7 @@ export default function Root({ children }: PropsWithChildren) {
                 box-sizing: border-box;
                 min-width: 0;
                 max-width: 100%;
+                font-size: 16px;
                 -webkit-appearance: none;
                 appearance: none;
               }

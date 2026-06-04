@@ -65,12 +65,29 @@ export function jsonError(error: unknown, fallbackStatus = 500) {
     const status = (error as Error & { status?: number }).status ?? fallbackStatus;
     const code = (error as Error & { code?: string }).code;
     return Response.json(
-      { error: error.message, ...(code ? { code } : {}) },
+      { error: sanitizePublicErrorMessage(error), ...(code ? { code } : {}) },
       { status }
     );
   }
   if (error instanceof Error) {
-    return Response.json({ error: error.message }, { status: fallbackStatus });
+    return Response.json(
+      { error: sanitizePublicErrorMessage(error) },
+      { status: fallbackStatus }
+    );
   }
   return Response.json({ error: "Internal server error" }, { status: 500 });
+}
+
+function sanitizePublicErrorMessage(error: Error): string {
+  const cause = (error as Error & { cause?: unknown }).cause;
+  if (cause && typeof cause === "object" && cause !== null && "code" in cause) {
+    const code = String((cause as { code?: unknown }).code ?? "");
+    if (code === "53300" || code === "57P03") {
+      return "Сервис временно перегружен. Подождите несколько секунд и попробуйте снова.";
+    }
+  }
+  if (error.message.startsWith("Failed query:")) {
+    return "Сервис временно недоступен. Попробуйте снова через несколько секунд.";
+  }
+  return error.message;
 }

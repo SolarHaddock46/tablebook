@@ -3,6 +3,10 @@ import { useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { ui } from "@/components/ui";
 
+const Constants = {
+  WebInputFontSize: 16
+} as const;
+
 type DateFieldProps = {
   label: string;
   value: Date;
@@ -234,7 +238,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     minHeight: 48,
-    justifyContent: "center"
+    justifyContent: "center",
+    fontSize: Constants.WebInputFontSize
   },
   pickerShell: {
     width: "100%",

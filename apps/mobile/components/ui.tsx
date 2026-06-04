@@ -1,20 +1,42 @@
-import { ScrollView, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import { useRouter } from "expo-router";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type ViewStyle
+} from "react-native";
+import { useLocale } from "@/lib/use-locale";
 
 const Constants = {
   StackGap: 12,
   ListItemGap: 12,
-  SectionGap: 16
+  SectionGap: 16,
+  HeaderGap: 8,
+  InputFontSize: 16,
+  BackButtonFontSize: 22,
+  BackButtonColor: "#64748b",
+  BackButtonHitSlop: 12,
+  BackButtonPressedOpacity: 0.6
 } as const;
 
 export function Screen({
   title,
   children,
-  scrollable = false
+  scrollable = false,
+  showBack
 }: {
   title?: string;
   children: React.ReactNode;
   scrollable?: boolean;
+  showBack?: boolean;
 }) {
+  const router = useRouter();
+  const shouldShowBack = showBack ?? router.canGoBack();
+  const header = title ? <ScreenHeader title={title} showBack={shouldShowBack} /> : null;
+
   if (scrollable) {
     return (
       <ScrollView
@@ -22,7 +44,7 @@ export function Screen({
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        {title ? <Text style={styles.title}>{title}</Text> : null}
+        {header}
         {children}
       </ScrollView>
     );
@@ -31,11 +53,40 @@ export function Screen({
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        {title ? <Text style={styles.title}>{title}</Text> : null}
+        {header}
         {children}
       </View>
     </View>
   );
+}
+
+function ScreenHeader({ title, showBack }: { title: string; showBack: boolean }) {
+  const router = useRouter();
+  const { dict } = useLocale();
+
+  return (
+    <View style={styles.headerRow}>
+      {showBack ? (
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel={dict.back}
+          hitSlop={backButtonHitSlop()}
+          style={({ pressed }) => [styles.backButton, pressed ? styles.backButtonPressed : null]}
+        >
+          <Text style={styles.backButtonText}>←</Text>
+        </Pressable>
+      ) : null}
+      <Text style={styles.title} numberOfLines={2}>
+        {title}
+      </Text>
+    </View>
+  );
+}
+
+function backButtonHitSlop() {
+  const size = Constants.BackButtonHitSlop;
+  return { top: size, bottom: size, left: size, right: size };
 }
 
 export function Stack({
@@ -92,11 +143,31 @@ const styles = StyleSheet.create({
     minWidth: 0,
     alignSelf: "stretch"
   },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Constants.HeaderGap,
+    marginBottom: 4,
+    minWidth: 0
+  },
+  backButton: {
+    paddingVertical: 2,
+    paddingRight: 2
+  },
+  backButtonPressed: {
+    opacity: Constants.BackButtonPressedOpacity
+  },
+  backButtonText: {
+    color: Constants.BackButtonColor,
+    fontSize: Constants.BackButtonFontSize,
+    lineHeight: Constants.BackButtonFontSize
+  },
   title: {
+    flex: 1,
     color: "#f8fafc",
     fontSize: 24,
     fontWeight: "700",
-    marginBottom: 4
+    minWidth: 0
   },
   listSeparator: {
     height: Constants.ListItemGap
@@ -129,7 +200,8 @@ export const ui = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: "#334155"
+    borderColor: "#334155",
+    fontSize: Constants.InputFontSize
   },
   button: {
     backgroundColor: "#06b6d4",

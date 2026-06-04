@@ -67,6 +67,12 @@ describe("booking cancellation policy", () => {
     expect(result.allowed).toBe(true);
   });
 
+  it("allows cancellation for pending bookings after scheduled start", () => {
+    const now = new Date("2026-05-30T20:00:00");
+    const result = canCancelBooking({ ...baseBooking, status: "pending" }, now);
+    expect(result.allowed).toBe(true);
+  });
+
   it("computes cancellation deadline as start minus 4 hours", () => {
     expect(getCancellationDeadline(baseBooking)).toEqual(new Date("2026-05-30T15:00:00"));
   });

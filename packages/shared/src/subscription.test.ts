@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   canAcceptBooking,
+  canPurchasePremiumPlan,
   computeBookingsRemaining,
+  isCurrentSubscriptionPlan,
   isPremiumSubscription,
   isSubscriptionActive
 } from "./subscription";
@@ -65,6 +67,46 @@ describe("canAcceptBooking", () => {
     if (!result.allowed) {
       expect(result.reason).toBe("limit_reached");
     }
+  });
+});
+
+describe("canPurchasePremiumPlan", () => {
+  it("allows purchase when subscription is missing", () => {
+    expect(canPurchasePremiumPlan(null)).toBe(true);
+  });
+
+  it("allows purchase when premium is cancelled", () => {
+    expect(
+      canPurchasePremiumPlan(
+        makeSubscription({ plan_name: "premium", status: "cancelled" })
+      )
+    ).toBe(true);
+  });
+
+  it("allows upgrade from active trial", () => {
+    expect(canPurchasePremiumPlan(makeSubscription({ plan_name: "trial", status: "trial" }))).toBe(true);
+  });
+
+  it("blocks purchase for active premium", () => {
+    expect(
+      canPurchasePremiumPlan(makeSubscription({ plan_name: "premium", status: "active" }))
+    ).toBe(false);
+  });
+});
+
+describe("isCurrentSubscriptionPlan", () => {
+  it("marks active trial plan as current", () => {
+    const subscription = makeSubscription({ plan_id: "plan-trial" });
+    expect(isCurrentSubscriptionPlan(subscription, "plan-trial")).toBe(true);
+  });
+
+  it("does not mark cancelled premium as current", () => {
+    const subscription = makeSubscription({
+      plan_id: "plan-premium",
+      plan_name: "premium",
+      status: "cancelled"
+    });
+    expect(isCurrentSubscriptionPlan(subscription, "plan-premium")).toBe(false);
   });
 });
 

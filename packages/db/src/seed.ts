@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { eq, inArray } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { getDb, closeDb } from "./client";
 import { recalculateRestaurantRating } from "./reviews";
 import { bookings, restaurants, restaurantSubscriptions, reviews, subscriptionPlans, users } from "./schema/index";
@@ -31,7 +31,8 @@ const Constants = {
   SeedPassword: "Test1234!",
   FullEveningProbability: 0.5,
   FullEveningDayMinOffset: 1,
-  FullEveningDayMaxOffset: 6
+  FullEveningDayMaxOffset: 6,
+  DemoBistroRestaurantId: "11111111-1111-1111-1111-111111111101"
 } as const;
 
 const BookingTimeOptions = ["18:00", "19:00", "20:00", "21:00"] as const;
@@ -546,6 +547,10 @@ async function seedSubscriptions(db: ReturnType<typeof getDb>, restaurantIds: st
     return;
   }
 
+  await db
+    .delete(restaurantSubscriptions)
+    .where(inArray(restaurantSubscriptions.restaurantId, restaurantIds));
+
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 30);
 
@@ -557,6 +562,42 @@ async function seedSubscriptions(db: ReturnType<typeof getDb>, restaurantIds: st
       expiresAt
     }))
   );
+
+  await ensureDemoBistroTrial(db, trialPlan.id, expiresAt);
+}
+
+async function ensureDemoBistroTrial(
+  db: ReturnType<typeof getDb>,
+  trialPlanId: string,
+  expiresAt: Date
+) {
+  const rows = await db
+    .select({ id: restaurantSubscriptions.id })
+    .from(restaurantSubscriptions)
+    .where(eq(restaurantSubscriptions.restaurantId, Constants.DemoBistroRestaurantId))
+    .orderBy(desc(restaurantSubscriptions.createdAt))
+    .limit(1);
+
+  const payload = {
+    planId: trialPlanId,
+    status: "trial" as const,
+    startedAt: new Date(),
+    expiresAt,
+    bookingsThisMonth: 0
+  };
+
+  if (rows[0]) {
+    await db
+      .update(restaurantSubscriptions)
+      .set(payload)
+      .where(eq(restaurantSubscriptions.id, rows[0].id));
+    return;
+  }
+
+  await db.insert(restaurantSubscriptions).values({
+    restaurantId: Constants.DemoBistroRestaurantId,
+    ...payload
+  });
 }
 
 run().catch(async (error) => {

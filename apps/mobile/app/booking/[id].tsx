@@ -94,7 +94,7 @@ export default function BookingDetailScreen() {
       {booking.status === "pending" ? (
         <Text style={ui.muted}>{dict.pendingConfirmationHint}</Text>
       ) : null}
-      {renderCancellationHint(cancellation, dict, locale)}
+      {renderCancellationHint(booking, cancellation, dict, locale)}
       {message ? <Text style={ui.link}>{message}</Text> : null}
       {error ? <Text style={[ui.muted, { color: "#f87171" }]}>{error}</Text> : null}
       {canLeaveReview ? (
@@ -111,12 +111,17 @@ export default function BookingDetailScreen() {
 }
 
 function renderCancellationHint(
+  booking: Booking,
   cancellation: ReturnType<typeof canCancelBooking> | null,
   dict: ReturnType<typeof t>,
   locale: Locale
 ) {
   if (!cancellation) {
     return null;
+  }
+
+  if (cancellation.allowed && booking.status === "pending") {
+    return <Text style={ui.muted}>{dict.cancelPendingHint}</Text>;
   }
 
   if (cancellation.allowed) {
@@ -147,7 +152,7 @@ function renderCancelButton(
   if (booking.status !== "confirmed" && booking.status !== "pending") {
     return null;
   }
-  if (isPastVisitBooking(booking)) {
+  if (booking.status === "confirmed" && isPastVisitBooking(booking)) {
     return null;
   }
 

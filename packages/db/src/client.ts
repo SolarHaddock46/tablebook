@@ -14,23 +14,37 @@ function getDatabaseUrl(): string {
   return url;
 }
 
-let client: ReturnType<typeof postgres> | null = null;
-let db: ReturnType<typeof drizzle<typeof schema>> | null = null;
+type DbGlobal = {
+  tablebookSql?: ReturnType<typeof postgres>;
+  tablebookDb?: ReturnType<typeof drizzle<typeof schema>>;
+};
+
+const globalForDb = globalThis as typeof globalThis & DbGlobal;
 
 export function getDb() {
-  if (!db) {
-    client = postgres(getDatabaseUrl(), { max: 10 });
-    db = drizzle(client, { schema });
+  if (!globalForDb.tablebookDb) {
+    globalForDb.tablebookSql = postgres(getDatabaseUrl(), {
+      max: Pool.maxConnections,
+      idle_timeout: Pool.idleTimeoutSeconds,
+      max_lifetime: Pool.maxLifetimeSeconds
+    });
+    globalForDb.tablebookDb = drizzle(globalForDb.tablebookSql, { schema });
   }
-  return db;
+  return globalForDb.tablebookDb;
 }
 
 export async function closeDb() {
-  if (client) {
-    await client.end();
-    client = null;
-    db = null;
+  if (globalForDb.tablebookSql) {
+    await globalForDb.tablebookSql.end();
+    globalForDb.tablebookSql = undefined;
+    globalForDb.tablebookDb = undefined;
   }
+}
+
+enum Pool {
+  maxConnections = 5,
+  idleTimeoutSeconds = 20,
+  maxLifetimeSeconds = 60 * 30
 }
 
 export { schema };

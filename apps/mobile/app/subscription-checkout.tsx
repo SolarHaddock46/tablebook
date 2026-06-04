@@ -85,9 +85,6 @@ export default function SubscriptionCheckoutScreen() {
       <Pressable style={ui.button} onPress={handlePay} disabled={loading || !plan}>
         <Text style={ui.buttonText}>{loading ? dict.processing : dict.pay}</Text>
       </Pressable>
-      <Pressable onPress={() => router.back()}>
-        <Text style={ui.link}>← {dict.back}</Text>
-      </Pressable>
     </Screen>
   );
 }

@@ -22,16 +22,16 @@ export function canCancelBooking(booking: Booking, now = new Date()): CancelBook
   const deadline = getCancellationDeadline(booking);
   const start = getBookingStartDate(booking);
 
-  if (booking.status !== "confirmed" && booking.status !== "pending") {
+  if (booking.status === "pending") {
+    return { allowed: true, deadline };
+  }
+
+  if (booking.status !== "confirmed") {
     return { allowed: false, reason: "not_cancellable", deadline };
   }
 
   if (now >= start) {
     return { allowed: false, reason: "past", deadline };
-  }
-
-  if (booking.status === "pending") {
-    return { allowed: true, deadline };
   }
 
   if (now >= deadline) {

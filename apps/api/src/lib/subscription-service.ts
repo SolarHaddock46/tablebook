@@ -133,6 +133,33 @@ export async function createTrialSubscription(restaurantId: string) {
   return mapRestaurantSubscription(row, "trial", trialPlan.maxBookingsMonthly);
 }
 
+export async function resetRestaurantToTrial(restaurantId: string) {
+  const db = getDb();
+  const trialPlan = await getPlanByName("trial");
+  if (!trialPlan) {
+    throw new Error("Trial plan not configured");
+  }
+
+  const expiresAt = addDays(new Date(), SubscriptionConstants.TrialDurationDays);
+  const loaded = await loadLatestSubscription(restaurantId);
+  if (loaded) {
+    const [updated] = await db
+      .update(restaurantSubscriptions)
+      .set({
+        planId: trialPlan.id,
+        status: "trial",
+        startedAt: new Date(),
+        expiresAt,
+        bookingsThisMonth: 0
+      })
+      .where(eq(restaurantSubscriptions.id, loaded.subscription.id))
+      .returning();
+    return mapRestaurantSubscription(updated, "trial", trialPlan.maxBookingsMonthly);
+  }
+
+  return createTrialSubscription(restaurantId);
+}
+
 export async function processSubscriptionPayment(restaurantId: string, planId: string) {
   const db = getDb();
   const plan = await getPlanById(planId);

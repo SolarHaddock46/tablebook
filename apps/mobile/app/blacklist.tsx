@@ -1,4 +1,3 @@
-import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { ListSeparator, Screen, ui } from "@/components/ui";
@@ -7,7 +6,6 @@ import { useLocale } from "@/lib/use-locale";
 import type { RestaurantBlacklistEntry } from "@tablebook/shared";
 
 export default function OwnerBlacklistScreen() {
-  const router = useRouter();
   const { locale, dict } = useLocale();
   const [entries, setEntries] = useState<RestaurantBlacklistEntry[]>([]);
   const [guestPhone, setGuestPhone] = useState("");
@@ -67,9 +65,6 @@ export default function OwnerBlacklistScreen() {
 
   return (
     <Screen title={dict.blacklist} scrollable>
-      <Pressable onPress={() => router.back()}>
-        <Text style={ui.link}>← {dict.back}</Text>
-      </Pressable>
       {loading ? <Text style={ui.muted}>{dict.loading}</Text> : null}
       {error ? <Text style={{ color: "#f87171" }}>{error}</Text> : null}
       <Text style={ui.label}>{dict.blacklistPhoneLabel}</Text>

@@ -1,7 +1,10 @@
 import { eq } from "drizzle-orm";
 import { getDb, mapRestaurant, restaurants } from "@tablebook/db";
 import { computeAlternatives, t, type Locale } from "@tablebook/shared";
-import { computeHasAvailability } from "@/lib/restaurants-service";
+import {
+  computeHasAvailabilityFromBooked,
+  getBookedTableIdsByRestaurant
+} from "@/lib/restaurants-service";
 import { logEvent } from "@/lib/events";
 
 type Props = {
@@ -26,13 +29,17 @@ export async function GET(request: Request, { params }: Props) {
   const selected = mapRestaurant(selectedRow);
   const allRows = await db.select().from(restaurants).where(eq(restaurants.status, "active")).limit(50);
 
-  const availableRows = await Promise.all(
-    allRows.map(async (row) => {
-      const restaurant = mapRestaurant(row);
-      const hasAvailability = await computeHasAvailability(restaurant, date, time, guests);
-      return { ...restaurant, has_availability: hasAvailability };
-    })
+  const bookedByRestaurant = await getBookedTableIdsByRestaurant(
+    allRows.map((row) => row.id),
+    date,
+    time
   );
+  const availableRows = allRows.map((row) => {
+    const restaurant = mapRestaurant(row);
+    const booked = bookedByRestaurant.get(row.id) ?? new Set<string>();
+    const hasAvailability = computeHasAvailabilityFromBooked(restaurant, booked, guests);
+    return { ...restaurant, has_availability: hasAvailability };
+  });
 
   const alternatives = computeAlternatives(selected, availableRows, {
     sameCuisine: dict.sameCuisine,

@@ -5,7 +5,9 @@ import { Screen, ui } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useLocale } from "@/lib/use-locale";
 import {
+  canPurchasePremiumPlan,
   formatPlanPrice,
+  isCurrentSubscriptionPlan,
   isPremiumSubscription,
   isSubscriptionActive,
   planTypeLabel,
@@ -48,8 +50,8 @@ export default function OwnerSubscriptionScreen() {
   }
 
   function renderPlanCard(plan: SubscriptionPlan) {
-    const isCurrent = subscription?.plan_id === plan.id;
-    const isPremium = plan.name === "premium";
+    const isCurrent = isCurrentSubscriptionPlan(subscription, plan.id);
+    const showPremiumCheckout = plan.name === "premium" && canPurchasePremiumPlan(subscription);
 
     return (
       <View key={plan.id} style={ui.card}>
@@ -62,7 +64,7 @@ export default function OwnerSubscriptionScreen() {
         ))}
         {isCurrent ? (
           <Text style={{ color: "#67e8f9", marginTop: 8 }}>{dict.subscriptionCurrentPlan}</Text>
-        ) : isPremium ? (
+        ) : showPremiumCheckout ? (
           <Pressable
             style={[ui.button, { marginTop: 8 }]}
             onPress={() => router.push(`/subscription-checkout?planId=${plan.id}`)}

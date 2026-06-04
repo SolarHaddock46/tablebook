@@ -24,6 +24,27 @@ export function isPremiumSubscription(subscription: RestaurantSubscription | nul
   return subscription!.plan_name === "premium";
 }
 
+export function isCurrentSubscriptionPlan(
+  subscription: RestaurantSubscription | null,
+  planId: string,
+  now = new Date()
+): boolean {
+  if (!subscription || subscription.plan_id !== planId || !isSubscriptionActive(subscription, now)) {
+    return false;
+  }
+  return true;
+}
+
+export function canPurchasePremiumPlan(subscription: RestaurantSubscription | null, now = new Date()): boolean {
+  if (!subscription) {
+    return true;
+  }
+  if (!isSubscriptionActive(subscription, now)) {
+    return true;
+  }
+  return subscription.plan_name === "trial";
+}
+
 export function canAcceptBooking(
   subscription: RestaurantSubscription | null,
   maxBookingsMonthly: number,

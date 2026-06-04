@@ -9,7 +9,10 @@ import {
   type RestaurantSearchResponse
 } from "@tablebook/shared";
 import { getAuthUser } from "@/lib/auth-helpers";
-import { computeHasAvailability } from "@/lib/restaurants-service";
+import {
+  computeHasAvailabilityFromBooked,
+  getBookedTableIdsByRestaurant
+} from "@/lib/restaurants-service";
 import { loadAvatarUrls } from "@/lib/restaurant-photos-service";
 import { loadPremiumRestaurantIds } from "@/lib/subscription-service";
 
@@ -99,17 +102,21 @@ async function enrichRestaurants(
   premiumIds: Set<string>
 ): Promise<RestaurantSearchHit[]> {
   const avatarUrls = await loadAvatarUrls(rows.map((row) => row.id));
-  return Promise.all(
-    rows.map(async (row) => {
-      const restaurant = mapRestaurant(row, { avatar_url: avatarUrls.get(row.id) ?? null });
-      const hasAvailability = await computeHasAvailability(restaurant, date, time, guests);
-      return {
-        ...restaurant,
-        has_availability: hasAvailability,
-        is_premium: premiumIds.has(row.id)
-      };
-    })
+  const bookedByRestaurant = await getBookedTableIdsByRestaurant(
+    rows.map((row) => row.id),
+    date,
+    time
   );
+  return rows.map((row) => {
+    const restaurant = mapRestaurant(row, { avatar_url: avatarUrls.get(row.id) ?? null });
+    const booked = bookedByRestaurant.get(row.id) ?? new Set<string>();
+    const hasAvailability = computeHasAvailabilityFromBooked(restaurant, booked, guests);
+    return {
+      ...restaurant,
+      has_availability: hasAvailability,
+      is_premium: premiumIds.has(row.id)
+    };
+  });
 }
 
 function sortByPremium(results: RestaurantSearchHit[]): RestaurantSearchHit[] {
